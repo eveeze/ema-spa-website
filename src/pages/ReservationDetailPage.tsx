@@ -565,7 +565,10 @@ const ReservationDetailPage = () => {
                     </h3>
                     {Array.isArray(paymentDetails.payment.instructions) ? (
                       paymentDetails.payment.instructions.map(
-                        (instructionGroup: any, index: number) => (
+                        (
+                          instructionGroup: { title: string; steps: string[] },
+                          index: number
+                        ) => (
                           <div key={index} className="mb-2">
                             <h4 className="font-medium text-gray-700">
                               {instructionGroup.title}

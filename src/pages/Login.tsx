@@ -24,8 +24,25 @@ const LoginPage = () => {
       const { token, customer } = response.data;
       login(token, customer);
       navigate("/dashboard"); // Arahkan ke dashboard setelah login
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Login gagal.");
+    } catch (err: unknown) {
+      let errorMessage = "Login gagal.";
+
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        "response" in err &&
+        typeof (err as Record<string, unknown>).response === "object"
+      ) {
+        const response = (err as { response?: { data?: { message?: string } } })
+          .response;
+        if (response?.data?.message) {
+          errorMessage = response.data.message;
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

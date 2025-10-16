@@ -130,7 +130,7 @@ export interface Payment {
   paymentMethod: string;
   paymentUrl: string | null;
   qrCode: string | null;
-  instructions: Record<string, any>;
+  instructions: Record<string, unknown>;
   expiryDate: string; // ISO date string
   paymentDate: string | null; // ISO date string
   paymentProof?: string | null; // DITAMBAHKAN
@@ -178,7 +178,7 @@ export interface CreateReservationResponse {
     expiryDate: string;
     tripayPaymentUrl: string;
     qrCode: string | null;
-    instructions: Record<string, any>;
+    instructions: Record<string, unknown>;
   };
 }
 

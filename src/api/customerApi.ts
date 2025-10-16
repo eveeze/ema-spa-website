@@ -200,7 +200,7 @@ export const uploadPaymentProof = async ({
 }: {
   reservationId: string;
   file: File;
-}): Promise<ApiResponse<any>> => {
+}): Promise<ApiResponse<unknown>> => {
   const formData = new FormData();
   formData.append("paymentProof", file);
 

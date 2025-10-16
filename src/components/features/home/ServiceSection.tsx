@@ -29,9 +29,18 @@ const ServicesSection: React.FC = () => {
           setServices([]);
           setError("Format data tidak sesuai");
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         const errorMessage =
-          err.response?.data?.message || err.message || "Gagal memuat layanan";
+          err instanceof Error
+            ? err.message
+            : typeof err === "object" &&
+              err !== null &&
+              "response" in err &&
+              typeof (err as { response?: { data?: { message?: string } } })
+                .response?.data?.message === "string"
+            ? (err as { response: { data: { message: string } } }).response.data
+                .message
+            : "Gagal memuat layanan";
         setError(errorMessage);
         setServices([]);
       } finally {

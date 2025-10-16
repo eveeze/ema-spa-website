@@ -32,10 +32,25 @@ const RegisterPage = () => {
       // Arahkan ke halaman verifikasi OTP setelah sukses
       // Sertakan email sebagai query parameter untuk digunakan di halaman berikutnya
       navigate(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
-    } catch (err: any) {
-      setError(
-        err.response?.data?.message || "Registrasi gagal. Silakan coba lagi."
-      );
+    } catch (err: unknown) {
+      let errorMessage = "Registrasi gagal. Silakan coba lagi.";
+
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        "response" in err &&
+        typeof (err as Record<string, unknown>).response === "object"
+      ) {
+        const response = (err as { response?: { data?: { message?: string } } })
+          .response;
+        if (response?.data?.message) {
+          errorMessage = response.data.message;
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

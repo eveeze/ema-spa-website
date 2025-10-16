@@ -40,11 +40,23 @@ const VerifyOtpPage = () => {
       setTimeout(() => {
         navigate("/login");
       }, 3000);
-    } catch (err: any) {
-      setError(
-        err.response?.data?.message ||
+    } catch (err: unknown) {
+      const isAxiosError = (
+        e: unknown
+      ): e is { response?: { data?: { message?: string } } } =>
+        typeof e === "object" &&
+        e !== null &&
+        "response" in e &&
+        typeof (e as Record<string, unknown>).response === "object";
+
+      const errorMessage = isAxiosError(err)
+        ? err.response?.data?.message ||
           "Verifikasi gagal. Cek kembali kode OTP Anda."
-      );
+        : err instanceof Error
+        ? err.message
+        : "Verifikasi gagal. Cek kembali kode OTP Anda.";
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -62,8 +74,25 @@ const VerifyOtpPage = () => {
       setSuccess(
         response.message || "OTP baru telah berhasil dikirim ke email Anda."
       );
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Gagal mengirim ulang OTP.");
+    } catch (err: unknown) {
+      let errorMessage = "Gagal mengirim ulang OTP.";
+
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        "response" in err &&
+        typeof (err as Record<string, unknown>).response === "object"
+      ) {
+        const response = (err as { response?: { data?: { message?: string } } })
+          .response;
+        if (response?.data?.message) {
+          errorMessage = response.data.message;
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
     } finally {
       setResending(false);
     }

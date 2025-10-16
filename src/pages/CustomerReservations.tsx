@@ -121,7 +121,7 @@ const CustomerReservations = () => {
   const [filter, setFilter] = useState<"upcoming" | "past">("upcoming");
 
   // 3. Menggunakan hook untuk fetching data. React Query akan menangani caching,
-  //    re-fetching, dan state (isLoading, isError, data).
+  // refetching, dan state (isLoading, isError, data).
   const {
     data: reservations,
     isLoading,

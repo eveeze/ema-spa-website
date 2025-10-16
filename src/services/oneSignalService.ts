@@ -51,14 +51,33 @@ export const sendPlayerIdToBackend = async (
       "Player ID berhasil dikirim ke backend:",
       response.data?.message
     );
-  } catch (error: any) {
-    console.error(
-      "Error saat mengirim Player ID ke backend:",
-      error?.response?.data || error.message
-    );
+  } catch (error: unknown) {
+    console.error("Error saat mengirim Player ID ke backend:", error);
 
-    // Jika error authentication, mungkin token expired
-    if (error?.response?.status === 401) {
+    let message = "Gagal mengirim Player ID ke backend.";
+    let status: number | undefined;
+
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "response" in error &&
+      typeof (error as Record<string, unknown>).response === "object"
+    ) {
+      const response = (
+        error as { response?: { data?: unknown; status?: number } }
+      ).response;
+      message =
+        typeof response?.data === "object" && response?.data !== null
+          ? JSON.stringify(response.data)
+          : String(response?.data || message);
+      status = response?.status;
+    } else if (error instanceof Error) {
+      message = error.message;
+    }
+
+    console.error("Error detail:", message);
+
+    if (status === 401) {
       console.log("Token mungkin expired, coba refresh atau login ulang");
     }
   }

@@ -21,11 +21,25 @@ const ServicesPage = () => {
           setServices([]);
           setError("Format data tidak sesuai");
         }
-      } catch (err: any) {
-        const errorMessage =
-          err.response?.data?.message ||
-          err.message ||
-          "Gagal memuat layanan. Silakan coba lagi nanti.";
+      } catch (err: unknown) {
+        let errorMessage = "Gagal memuat layanan. Silakan coba lagi nanti.";
+
+        if (
+          typeof err === "object" &&
+          err !== null &&
+          "response" in err &&
+          typeof (err as Record<string, unknown>).response === "object"
+        ) {
+          const response = (
+            err as { response?: { data?: { message?: string } } }
+          ).response;
+          if (response?.data?.message) {
+            errorMessage = response.data.message;
+          }
+        } else if (err instanceof Error) {
+          errorMessage = err.message;
+        }
+
         setError(errorMessage);
         setServices([]);
       } finally {

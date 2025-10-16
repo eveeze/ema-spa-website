@@ -52,12 +52,29 @@ const PaymentStatusPage = () => {
           `/reservations/payment/${reservationId}`
         );
         setDetails(response.data.data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Gagal memverifikasi pembayaran:", err);
-        setError(
-          err.response?.data?.message ||
-            "Gagal memuat status pembayaran. Silakan cek halaman reservasi Anda."
-        );
+
+        let errorMessage =
+          "Gagal memuat status pembayaran. Silakan cek halaman reservasi Anda.";
+
+        if (
+          typeof err === "object" &&
+          err !== null &&
+          "response" in err &&
+          typeof (err as Record<string, unknown>).response === "object"
+        ) {
+          const response = (
+            err as { response?: { data?: { message?: string } } }
+          ).response;
+          if (response?.data?.message) {
+            errorMessage = response.data.message;
+          }
+        } else if (err instanceof Error) {
+          errorMessage = err.message;
+        }
+
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }

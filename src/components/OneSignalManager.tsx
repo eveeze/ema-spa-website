@@ -8,7 +8,7 @@ const OneSignalManager = () => {
   const { isAuthenticated } = useAuth();
   const isInitialized = useRef(false);
   const listenerAttached = useRef(false);
-  const subscriptionChangeHandler = useRef<((change: any) => void) | null>(
+  const subscriptionChangeHandler = useRef<((change: unknown) => void) | null>(
     null
   );
 
@@ -40,11 +40,21 @@ const OneSignalManager = () => {
 
         // Setup listener untuk perubahan subscription
         if (!listenerAttached.current && OneSignal.User?.PushSubscription) {
-          const onSubscriptionChange = (change: any) => {
+          const onSubscriptionChange = (change: unknown) => {
             console.log("Status langganan berubah:", change);
 
-            if (change.current?.optedIn && change.current?.id) {
-              const playerId = change.current.id;
+            if (
+              change &&
+              typeof change === "object" &&
+              "current" in change &&
+              change.current &&
+              typeof change.current === "object" &&
+              "optedIn" in change.current &&
+              "id" in change.current &&
+              change.current.optedIn &&
+              change.current.id
+            ) {
+              const playerId = change.current.id as string;
               console.log("Player ID baru didapatkan:", playerId);
               sendPlayerIdToBackend(playerId);
             }

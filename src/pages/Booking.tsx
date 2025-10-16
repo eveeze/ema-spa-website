@@ -75,12 +75,17 @@ const BookingPage = () => {
         );
         setService(serviceRes.data.data);
 
-        const scheduleRes = await apiClient.get<ApiResponse<any[]>>(
-          "/operating-schedule?isHoliday=false"
-        );
+        interface OperatingSchedule {
+          date: string;
+        }
+
+        const scheduleRes = await apiClient.get<
+          ApiResponse<OperatingSchedule[]>
+        >("/operating-schedule?isHoliday=false");
+
         if (Array.isArray(scheduleRes.data.data)) {
           const allDates = scheduleRes.data.data.map(
-            (s: any) => s.date.split("T")[0]
+            (s: OperatingSchedule) => s.date.split("T")[0]
           );
           const futureDates = filterFutureDates(allDates);
           setAvailableDates(futureDates);
@@ -230,12 +235,27 @@ const BookingPage = () => {
         );
         navigate("/dashboard/reservations?status=pending");
       }
-    } catch (err: any) {
-      console.error("Reservation failed. Response data:", err.response?.data);
-      setError(
-        err.response?.data?.message ||
-          "Terjadi kesalahan saat membuat reservasi."
-      );
+    } catch (err: unknown) {
+      console.error("Reservation failed. Response data:", err);
+
+      let errorMessage = "Terjadi kesalahan saat membuat reservasi.";
+
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        "response" in err &&
+        typeof (err as Record<string, unknown>).response === "object"
+      ) {
+        const response = (err as { response?: { data?: { message?: string } } })
+          .response;
+        if (response?.data?.message) {
+          errorMessage = response.data.message;
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
     } finally {
       setLoading((prev) => ({ ...prev, submit: false }));
     }
