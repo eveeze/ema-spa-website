@@ -23,7 +23,7 @@ const Navbar: React.FC = () => {
             <Link to="/" className="flex items-center">
               <img
                 className="h-16 w-auto rounded-full"
-                src="/src/assets/images/babyspa.jpg"
+                src="/babyspa.jpg"
                 alt="Ema Mom Kids Baby Spa"
               />
               <span className="ml-2 text-xl font-bold text-brand-dark">
