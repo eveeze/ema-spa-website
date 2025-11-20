@@ -1,5 +1,5 @@
 // src/api/customerApi.ts
-import apiClient from "./apiClient"; // Asumsi Anda punya instance Axios yang terkonfigurasi
+import apiClient from "./apiClient";
 import {
   ApiResponse,
   Customer,
@@ -9,15 +9,15 @@ import {
   PaymentMethod,
   ReservationPayload,
   CreateReservationResponse,
-  AvailableTimeSlotResponse, // Import tipe baru
+  AvailableTimeSlotResponse,
   RegisterPayload,
   VerifyOtpPayload,
   ResendOtpPayload,
   OnlineRatingPayload,
   Rating,
-} from "../types"; // Asumsi Anda punya file types yang sesuai
+  ReschedulePayload, // BARU: Import tipe ini
+} from "../types";
 
-// --- BARU: Fungsi untuk registrasi customer ---
 /**
  * Mendaftarkan customer baru.
  * @param payload - Data registrasi (nama, email, no. telp, password).
@@ -32,7 +32,6 @@ export const registerCustomer = async (
   return response.data;
 };
 
-// --- BARU: Fungsi untuk verifikasi OTP ---
 /**
  * Memverifikasi OTP yang dimasukkan oleh pengguna.
  * @param payload - Data verifikasi (email, otp).
@@ -40,7 +39,6 @@ export const registerCustomer = async (
 export const verifyOtp = async (
   payload: VerifyOtpPayload
 ): Promise<ApiResponse<null>> => {
-  // Backend hanya mengembalikan message, jadi data bisa null
   const response = await apiClient.post<ApiResponse<null>>(
     "/customer/verify-otp",
     payload
@@ -48,7 +46,6 @@ export const verifyOtp = async (
   return response.data;
 };
 
-// --- BARU: Fungsi untuk mengirim ulang OTP ---
 /**
  * Meminta server untuk mengirim ulang OTP ke email pengguna.
  * @param payload - Data (email).
@@ -65,30 +62,22 @@ export const resendOtp = async (
 
 /**
  * Mengambil daftar reservasi milik pelanggan yang sedang login.
- * Fungsi ini menerjemahkan filter 'upcoming' dan 'past' menjadi
- * parameter query yang dapat dimengerti oleh backend.
- *
- * @param status - Filter berdasarkan status reservasi ("upcoming", "past", atau status spesifik).
- * @param limit - Batasi jumlah hasil (opsional).
- * @returns Promise yang berisi daftar reservasi beserta data paginasi.
  */
 export const getMyReservations = async (
   status?: "upcoming" | "past" | string,
   limit?: number
 ): Promise<ApiResponse<Reservation[]>> => {
-  // PERBAIKAN: Tipe data sekarang adalah array reservasi
   const params = new URLSearchParams();
 
   if (status) {
-    // Memperbarui filter status agar lebih akurat dengan alur reservasi
     if (status === "upcoming") {
       const upcomingStatuses = ["PENDING", "CONFIRMED", "IN_PROGRESS"];
       upcomingStatuses.forEach((s) => params.append("status", s));
-      params.append("orderBy", "sessionTime:asc"); // Urutkan berdasarkan waktu sesi untuk "upcoming"
+      params.append("orderBy", "sessionTime:asc");
     } else if (status === "past") {
       const pastStatuses = ["COMPLETED", "CANCELLED", "EXPIRED"];
       pastStatuses.forEach((s) => params.append("status", s));
-      params.append("orderBy", "sessionTime:desc"); // Urutkan berdasarkan waktu sesi untuk "past"
+      params.append("orderBy", "sessionTime:desc");
     } else {
       params.append("status", status);
     }
@@ -98,7 +87,6 @@ export const getMyReservations = async (
     params.append("limit", limit.toString());
   }
 
-  // Tipe generic pada get() juga diperbarui
   const response = await apiClient.get<ApiResponse<Reservation[]>>(
     `/reservations/customer?${params.toString()}`
   );
@@ -121,15 +109,10 @@ export const getReservationById = async (
 
 /**
  * Mengambil data profil pelanggan yang sedang login.
- * API langsung mengembalikan objek Customer.
  */
 export const getMyProfile = async (): Promise<Customer> => {
-  // Change the generic type to Customer directly if the API returns Customer object as top level
   const response = await apiClient.get<Customer>("/customer/profile");
-
-  // Based on your example, `response.data` already IS the Customer object.
-  // So, we return `response.data` instead of `response.data.data`.
-  return response.data; // <--- This is the crucial change
+  return response.data;
 };
 
 /**
@@ -139,7 +122,6 @@ export const getMyProfile = async (): Promise<Customer> => {
 export const updateMyProfile = async (
   payload: UpdateProfilePayload
 ): Promise<ApiResponse<Customer>> => {
-  // Menggunakan `payload.id` untuk membangun URL, sesuai dengan backend.
   const response = await apiClient.put<ApiResponse<Customer>>(
     `/customer/update/${payload.id}`,
     {
@@ -217,15 +199,12 @@ export const uploadPaymentProof = async ({
 };
 
 /**
- * BARU: Mengambil daftar time slots yang tersedia untuk tanggal tertentu.
- * Ini akan digunakan для menampilkan jadwal secara real-time.
+ * Mengambil daftar time slots yang tersedia untuk tanggal tertentu.
  * @param dateString - Tanggal dalam format YYYY-MM-DD.
- * @returns Promise yang berisi daftar time slots beserta sesi yang tersedia.
  */
 export const getAvailableTimeSlotsForDate = async (
   dateString: string
 ): Promise<ApiResponse<AvailableTimeSlotResponse[]>> => {
-  // PERBAIKAN: Hapus query parameter `duration` karena tidak digunakan oleh endpoint ini
   const response = await apiClient.get<
     ApiResponse<AvailableTimeSlotResponse[]>
   >(`/time-slot/available/${dateString}`);
@@ -242,6 +221,23 @@ export const createOnlineRating = async (
   const response = await apiClient.post<ApiResponse<Rating>>(
     "/ratings",
     payload
+  );
+  return response.data;
+};
+
+/**
+ * BARU: Melakukan penjadwalan ulang (reschedule) reservasi.
+ * @param payload - Data reschedule (reservationId, newSessionId).
+ */
+export const rescheduleReservation = async (
+  payload: ReschedulePayload
+): Promise<ApiResponse<Reservation>> => {
+  // Endpoint sesuai backend: PUT /api/reservations/customer/:id/reschedule
+  const response = await apiClient.put<ApiResponse<Reservation>>(
+    `/reservations/customer/${payload.reservationId}/reschedule`,
+    {
+      newSessionId: payload.newSessionId,
+    }
   );
   return response.data;
 };

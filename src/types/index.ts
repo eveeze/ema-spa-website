@@ -51,7 +51,7 @@ export interface Rating {
   createdAt: string;
 }
 
-// --- Tipe Service (KEMBALI KE VERSI LENGKAP ASLI ANDA) ---
+// --- Tipe Service ---
 export interface Service {
   id: string;
   name: string;
@@ -93,7 +93,7 @@ export interface Session {
   staff: Staff;
   timeSlot: TimeSlot;
   // Reservation bisa null jika session belum terhubung ke reservasi
-  reservation: Reservation | null; // Tambahkan ini
+  reservation: Reservation | null;
 }
 
 // Tipe untuk Reservasi
@@ -112,14 +112,15 @@ export interface Reservation {
     | "EXPIRED"
     | "IN_PROGRESS";
   totalPrice: number;
+  rescheduleCount: number; // BARU: Menambahkan field ini sesuai backend
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string
   service: Pick<Service, "id" | "name" | "duration" | "imageUrl">;
-  staff: Staff; // DITAMBAHKAN: Tambahkan properti staff di sini
+  staff: Staff;
   session: Session;
   customer: Pick<Customer, "id" | "name">;
   payment?: Payment;
-  rating?: Rating | null; // <-- TAMBAHKAN BARIS INI
+  rating?: Rating | null;
 }
 
 // Tipe untuk Pembayaran
@@ -133,7 +134,7 @@ export interface Payment {
   instructions: Record<string, unknown>;
   expiryDate: string; // ISO date string
   paymentDate: string | null; // ISO date string
-  paymentProof?: string | null; // DITAMBAHKAN
+  paymentProof?: string | null;
 }
 
 // Tipe untuk detail pembayaran lengkap (gabungan payment dan reservation)
@@ -165,6 +166,12 @@ export interface ReservationPayload {
   paymentMethod: string;
 }
 
+// BARU: Tipe payload untuk rescheduling
+export interface ReschedulePayload {
+  reservationId: string; // Dibutuhkan untuk URL parameter
+  newSessionId: string; // Data body yang dikirim
+}
+
 // Tipe untuk respons API setelah berhasil membuat reservasi
 export interface CreateReservationResponse {
   reservation: {
@@ -189,7 +196,7 @@ export interface UpdateProfilePayload {
   phoneNumber: string;
 }
 
-// BARU: Tipe untuk payload registrasi customer
+// Tipe untuk payload registrasi customer
 export interface RegisterPayload {
   name: string;
   email: string;
@@ -197,16 +204,17 @@ export interface RegisterPayload {
   password: string;
 }
 
-// BARU: Tipe untuk payload verifikasi OTP
+// Tipe untuk payload verifikasi OTP
 export interface VerifyOtpPayload {
   email: string;
   otp: string;
 }
 
-// BARU: Tipe untuk payload kirim ulang OTP
+// Tipe untuk payload kirim ulang OTP
 export interface ResendOtpPayload {
   email: string;
 }
+
 export interface AvailableTimeSlotResponse {
   id: string;
   startTime: string; // ISO date string
