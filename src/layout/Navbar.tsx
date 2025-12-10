@@ -10,30 +10,45 @@ const Navbar: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
 
   const navLinkClasses = ({ isActive }: { isActive: boolean }) =>
-    `font-medium text-brand-dark hover:text-brand-blue transition-colors duration-300 ${
-      isActive ? "text-brand-blue" : ""
-    }`;
+    [
+      "relative px-2 py-1 text-sm md:text-[15px] font-medium tracking-tight",
+      "text-slate-600 transition-colors duration-200",
+      // underline micro interaction
+      "after:pointer-events-none after:absolute after:left-1 after:right-1 after:-bottom-1",
+      "after:h-[2px] after:rounded-full after:bg-sky-400",
+      "after:scale-x-0 after:origin-center after:transition-transform after:duration-300",
+      isActive
+        ? "text-slate-900 after:scale-x-100"
+        : "hover:text-slate-900 hover:after:scale-x-100",
+    ].join(" ");
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+    <header className="sticky top-0 z-40 border-b border-sky-100/80 bg-white/80 backdrop-blur-md supports-[backdrop-filter]:bg-white/60">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 md:h-20 items-center justify-between">
           {/* Logo */}
-          <div className="flex-shrink-0">
-            <Link to="/" className="flex items-center">
-              <img
-                className="h-16 w-auto rounded-full"
-                src="/babyspa.jpg"
-                alt="Ema Mom Kids Baby Spa"
-              />
-              <span className="ml-2 text-xl font-bold text-brand-dark">
-                Ema Baby Spa
-              </span>
+          <div className="flex flex-shrink-0 items-center gap-3">
+            <Link to="/" className="flex items-center gap-3">
+              <div className="relative h-10 w-10 md:h-12 md:w-12 overflow-hidden rounded-full border border-sky-100 shadow-sm">
+                <img
+                  className="h-full w-full object-cover"
+                  src="/babyspa.jpg"
+                  alt="Ema Mom Kids Baby Spa"
+                />
+              </div>
+              <div className="hidden sm:flex flex-col leading-tight">
+                <span className="text-sm md:text-base font-semibold text-slate-900">
+                  Ema Mom Kids Baby Spa
+                </span>
+                <span className="text-[11px] md:text-xs text-slate-500">
+                  Relax, Healthy and Happy
+                </span>
+              </div>
             </Link>
           </div>
 
           {/* Navigasi Desktop */}
-          <nav className="hidden md:flex md:space-x-8">
+          <nav className="hidden md:flex md:items-center md:gap-6">
             <NavLink to="/" className={navLinkClasses}>
               Home
             </NavLink>
@@ -46,30 +61,39 @@ const Navbar: React.FC = () => {
           </nav>
 
           {/* Tombol Aksi Desktop */}
-          <div className="hidden md:block">
+          <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center gap-3 rounded-full border border-sky-100 bg-sky-50/60 px-3 py-1.5 shadow-sm">
                 <NotificationIcon />
-                <span className="text-sm text-gray-600">
-                  Halo, {user?.name || "User"}
-                </span>
-                <Button to="/dashboard">Dashboard</Button>
+                <div className="flex flex-col">
+                  <span className="text-xs text-slate-500 leading-none">
+                    Halo,
+                  </span>
+                  <span className="text-sm font-medium text-slate-800 leading-tight">
+                    {user?.name || "User"}
+                  </span>
+                </div>
+                <Button size="sm" variant="sky" to="/dashboard">
+                  Dashboard
+                </Button>
               </div>
             ) : (
-              <Button to="/login">Login</Button>
+              <Button size="sm" variant="sky" to="/login">
+                Login
+              </Button>
             )}
           </div>
 
           {/* Tombol Menu Mobile */}
           <div className="md:hidden">
             <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-brand-blue focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              onClick={() => setIsOpen((prev) => !prev)}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-sky-100 bg-white/90 shadow-sm text-slate-700 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
               aria-label="Main menu"
-              aria-expanded="false"
+              aria-expanded={isOpen}
             >
               <svg
-                className="h-6 w-6"
+                className="h-5 w-5"
                 stroke="currentColor"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -97,47 +121,63 @@ const Navbar: React.FC = () => {
 
       {/* Menu Mobile */}
       {isOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 text-center">
-            <NavLink
-              to="/"
-              className={navLinkClasses}
-              onClick={() => setIsOpen(false)}
-            >
-              Home
-            </NavLink>
-            <NavLink
-              to="/services"
-              className={navLinkClasses}
-              onClick={() => setIsOpen(false)}
-            >
-              Layanan
-            </NavLink>
-            <NavLink
-              to="/schedule"
-              className={navLinkClasses}
-              onClick={() => setIsOpen(false)}
-            >
-              Jadwal
-            </NavLink>
+        <div className="md:hidden border-t border-sky-100/80 bg-white/95 backdrop-blur-md">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col gap-2 py-3 text-center">
+              <NavLink
+                to="/"
+                className={navLinkClasses}
+                onClick={() => setIsOpen(false)}
+              >
+                Home
+              </NavLink>
+              <NavLink
+                to="/services"
+                className={navLinkClasses}
+                onClick={() => setIsOpen(false)}
+              >
+                Layanan
+              </NavLink>
+              <NavLink
+                to="/schedule"
+                className={navLinkClasses}
+                onClick={() => setIsOpen(false)}
+              >
+                Jadwal
+              </NavLink>
 
-            {/* Tombol untuk Mobile */}
-            <div className="pt-4 space-y-2">
-              {isAuthenticated ? (
-                <>
-                  <NotificationIcon />
-                  <div className="text-sm text-gray-600 pb-2">
-                    Halo, {user?.name || "User"}
-                  </div>
-                  <Button to="/dashboard" onClick={() => setIsOpen(false)}>
-                    Dashboard
+              {/* Tombol untuk Mobile */}
+              <div className="mt-2 flex flex-col items-center gap-2 pb-3">
+                {isAuthenticated ? (
+                  <>
+                    <div className="flex items-center gap-2 rounded-full border border-sky-100 bg-sky-50/70 px-3 py-1.5 shadow-sm">
+                      <NotificationIcon />
+                      <span className="text-sm text-slate-700">
+                        Halo, {user?.name || "User"}
+                      </span>
+                    </div>
+                    <Button
+                      size="md"
+                      fullWidth
+                      variant="sky"
+                      to="/dashboard"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Dashboard
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    size="md"
+                    fullWidth
+                    variant="sky"
+                    to="/login"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Login
                   </Button>
-                </>
-              ) : (
-                <Button to="/login" onClick={() => setIsOpen(false)}>
-                  Login
-                </Button>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
