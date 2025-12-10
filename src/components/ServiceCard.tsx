@@ -1,151 +1,129 @@
-// src/components/ServiceCard.tsx
-import React, { useState } from "react";
+// /src/components/ServiceCard.tsx
+import React from "react";
 import { Link } from "react-router-dom";
-import { Clock, Star, Baby, ImageIcon } from "lucide-react";
-import { Service } from "../types";
+import { Clock, Sparkles } from "lucide-react";
+import type { Service } from "../types";
 
 interface ServiceCardProps {
   service: Service;
 }
 
 const ServiceCard: React.FC<ServiceCardProps> = ({ service }) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
-
-  const handleImageLoad = () => {
-    setImageLoaded(true);
-    setImageError(false);
+  const s = service as Service & {
+    duration?: number | null;
+    hasPriceTiers?: boolean;
+    priceTiers?: { id: string; price: number; minBabyAge: number; maxBabyAge: number }[];
   };
 
-  const handleImageError = () => {
-    setImageError(true);
-    setImageLoaded(false);
-  };
+  const { id, name, description, imageUrl } = s;
+  const hasPriceTiers = Boolean(s.hasPriceTiers && s.priceTiers && s.priceTiers.length > 0);
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
+  // Hitung harga tampilan
+  let displayPrice: string | null = null;
+  let priceLabelPrefix = "";
 
-  const getAgeRange = (minAge: number | null, maxAge: number | null) => {
-    if (minAge === null || maxAge === null) {
-      return "Semua usia";
-    }
-    return `${minAge}-${maxAge} bulan`;
-  };
+  if (hasPriceTiers && s.priceTiers) {
+    const minPrice = Math.min(...s.priceTiers.map((t) => t.price));
+    displayPrice = minPrice.toLocaleString("id-ID");
+    priceLabelPrefix = "Mulai dari";
+  } else if (s.price) {
+    displayPrice = s.price.toLocaleString("id-ID");
+    priceLabelPrefix = "";
+  }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
-      {/* Image Section */}
-      <div className="relative h-48 bg-gray-100 overflow-hidden">
-        {!imageError && service.imageUrl ? (
-          <>
-            {/* Loading skeleton */}
-            {!imageLoaded && (
-              <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-                <ImageIcon className="w-12 h-12 text-gray-400" />
-              </div>
-            )}
-
-            {/* Actual image */}
-            <img
-              src={service.imageUrl}
-              alt={service.name}
-              className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-105 ${
-                imageLoaded ? "opacity-100" : "opacity-0"
-              }`}
-              onLoad={handleImageLoad}
-              onError={handleImageError}
-              loading="lazy"
-            />
-          </>
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-sky-100/70 bg-white/90 shadow-sm shadow-sky-100/60 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+      {/* Image */}
+      <div className="relative h-40 sm:h-44 md:h-48 w-full overflow-hidden">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={name}
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
         ) : (
-          /* Fallback for missing/error image */
-          <div className="w-full h-full bg-gradient-to-br from-brand-primary/10 to-brand-primary/20 flex items-center justify-center">
-            <div className="text-center">
-              <Baby className="w-16 h-16 text-brand-primary/50 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">No Image</p>
-            </div>
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-50 via-sky-100 to-sky-200">
+            <Sparkles className="h-8 w-8 text-sky-400" />
           </div>
         )}
 
-        {/* Category Badge */}
-        <div className="absolute top-3 left-3">
-          <span className="bg-brand-primary text-white px-3 py-1 rounded-full text-xs font-semibold">
-            {service.category.name}
-          </span>
+        {/* gradient overlay tipis */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-900/20 via-transparent to-transparent" />
+
+        {/* badge kecil di pojok */}
+        <div className="pointer-events-none absolute left-3 top-3 inline-flex items-center rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold text-sky-700 shadow-sm">
+          Spa bayi &amp; bunda
         </div>
-
-        {/* Rating Badge (if available) */}
-        {service.averageRating && (
-          <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
-            <Star className="w-3 h-3 text-yellow-500 fill-current" />
-            <span className="text-xs font-semibold">
-              {service.averageRating}
-            </span>
-          </div>
-        )}
       </div>
 
-      {/* Content Section */}
-      <div className="p-6">
-        {/* Service Name */}
-        <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
-          {service.name}
+      {/* Content */}
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
+        <h3 className="text-sm sm:text-base md:text-lg font-semibold tracking-tight text-slate-900">
+          {name}
         </h3>
 
-        {/* Description */}
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-          {service.description}
+        <p className="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed line-clamp-3">
+          {description ||
+            "Perawatan lembut yang dirancang untuk memberikan rasa nyaman dan aman bagi bayi dan Bunda."}
         </p>
 
-        {/* Service Info */}
-        <div className="space-y-2 mb-4">
-          {/* Duration */}
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Clock className="w-4 h-4" />
-            <span>{service.duration} menit</span>
+        {/* Meta: durasi + harga */}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-[11px] sm:text-xs text-slate-500">
+            <Clock className="h-3.5 w-3.5 text-sky-500" />
+            <span>{s.duration ? `${s.duration} menit` : "Durasi fleksibel"}</span>
           </div>
 
-          {/* Age Range */}
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Baby className="w-4 h-4" />
-            <span>
-              Usia {getAgeRange(service.minBabyAge, service.maxBabyAge)}
-            </span>
-          </div>
-        </div>
-
-        {/* Price */}
-        <div className="mb-4">
-          {service.price !== null ? (
-            <>
-              <span className="text-2xl font-bold text-brand-primary">
-                {formatPrice(service.price)}
-              </span>
-              {service.hasPriceTiers && (
-                <span className="text-sm text-gray-500 ml-2">mulai dari</span>
+          {displayPrice && (
+            <div className="flex flex-col items-end">
+              {priceLabelPrefix && (
+                <span className="text-[10px] text-slate-400 uppercase tracking-[0.18em]">
+                  {priceLabelPrefix}
+                </span>
               )}
-            </>
-          ) : (
-            <span className="text-lg font-semibold text-gray-600">
-              Harga bervariasi
-            </span>
+              <p className="text-sm sm:text-base font-semibold text-sky-700">
+                Rp {displayPrice}
+              </p>
+            </div>
           )}
         </div>
 
-        {/* Action Button */}
-        <Link
-          to={`/services/${service.id}`}
-          className="w-full bg-sky-300 -primary text-white py-3 px-4 rounded-lg font-semibold hover:bg-brand-primary/90 transition-colors duration-200 text-center block"
-        >
-          Lihat Detail
-        </Link>
+        {/* Footer: CTA */}
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <Link
+            to={`/services/${id}`}
+            className="inline-flex items-center text-xs sm:text-sm font-semibold text-slate-800 hover:text-sky-700 transition-colors group"
+          >
+            Detail layanan
+            <span className="ml-1 translate-y-[1px] text-[13px] transition-transform group-hover:translate-x-1">
+              →
+            </span>
+          </Link>
+
+          {hasPriceTiers ? (
+            // Kalau ada tier → suruh ke detail dulu biar pilih harga/usia
+            <Link
+              to={`/services/${id}`}
+              className="inline-flex items-center rounded-full bg-sky-500/90 px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-semibold text-white shadow-sm shadow-sky-300/70 transition-all duration-200 hover:bg-sky-600 hover:shadow-md"
+            >
+              Pilih harga &amp; booking
+            </Link>
+          ) : (
+            // Kalau single price → boleh booking cepat
+            <Link
+              to={`/booking/${id}`}
+              className="inline-flex items-center rounded-full bg-sky-500/90 px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-semibold text-white shadow-sm shadow-sky-300/70 transition-all duration-200 hover:bg-sky-600 hover:shadow-md"
+            >
+              Booking cepat
+            </Link>
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* Glow halus di bawah ketika hover */}
+      <div className="pointer-events-none absolute inset-x-6 -bottom-4 h-6 rounded-full bg-sky-200/0 blur-2xl transition-opacity duration-300 group-hover:bg-sky-200/50 group-hover:opacity-70" />
+    </article>
   );
 };
 

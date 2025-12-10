@@ -1,288 +1,435 @@
 // src/pages/ServiceDetail.tsx
 
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import apiClient from "../api/apiClient";
-import { Service } from "../types"; // Asumsikan PriceTier ada di types
+import type { Service } from "../types";
 import {
   Clock,
   Baby,
   ChevronRight,
   ShieldCheck,
-  Heart,
+  ArrowLeft,
   Sparkles,
 } from "lucide-react";
 
-// Komponen kecil untuk menampilkan item informasi
+// ========== AGE HELPERS ==========
+
+const formatAgeSingle = (months: number): string => {
+  if (months < 12) return `${months} bln`;
+  const years = Math.floor(months / 12);
+  const restMonths = months % 12;
+
+  if (restMonths === 0) return `${years} th`;
+  return `${years} th ${restMonths} bln`;
+};
+
+const formatAgeRange = (min: number, max: number): string => {
+  if (max < 24) {
+    return `${min}-${max} bulan`;
+  }
+
+  const minLabel = min === 0 ? "0 bln" : formatAgeSingle(min);
+  const maxLabel = formatAgeSingle(max);
+  return `${minLabel} – ${maxLabel}`;
+};
+
+// ========== SMALL SUB COMPONENTS ==========
+
 const InfoPill = ({
   icon: Icon,
-  text,
+  label,
+  value,
 }: {
   icon: React.ElementType;
-  text: string;
+  label: string;
+  value: string;
 }) => (
-  <div className="flex items-center gap-x-2 bg-gradient-to-r from-sky-50 to-pink-50 text-sky-600 rounded-full px-4 py-2.5 text-sm font-semibold border border-sky-100/50 shadow-sm">
-    <Icon className="w-4 h-4 text-sky-500" />
-    <span>{text}</span>
+  <div className="inline-flex items-center gap-3 rounded-full border border-sky-100 bg-white/90 px-4 py-2 text-xs sm:text-sm shadow-sm shadow-sky-50">
+    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-50">
+      <Icon className="h-3.5 w-3.5 text-sky-500" />
+    </span>
+    <div className="flex flex-col">
+      <span className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
+        {label}
+      </span>
+      <span className="text-xs sm:text-sm font-medium text-slate-800">
+        {value}
+      </span>
+    </div>
   </div>
 );
 
-// Floating decoration component
-const FloatingDecor = () => (
-  <div className="absolute inset-0 pointer-events-none overflow-hidden">
-    <div className="absolute top-10 left-10 text-pink-200 opacity-20">
-      <Heart className="w-16 h-16 animate-pulse" />
-    </div>
-    <div className="absolute top-32 right-16 text-sky-200 opacity-20">
-      <Sparkles className="w-12 h-12 animate-bounce" />
-    </div>
-    <div className="absolute bottom-20 left-20 text-yellow-200 opacity-20">
-      <Baby className="w-14 h-14 animate-pulse" />
-    </div>
+const BackgroundDecor = () => (
+  <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div className="absolute -top-40 left-[-10%] h-64 w-64 rounded-full bg-sky-100/80 blur-3xl" />
+    <div className="absolute top-20 right-[-10%] h-72 w-72 rounded-full bg-sky-100/70 blur-3xl" />
+    <div className="absolute bottom-[-20%] left-[5%] h-72 w-72 rounded-full bg-amber-50/70 blur-3xl" />
+    <div className="absolute inset-0 bg-gradient-to-b from-sky-50 via-white to-sky-50" />
+    <div className="absolute inset-0 bg-[url('/textures/noise.png')] opacity-[0.06] mix-blend-soft-light" />
   </div>
 );
+
+// ========== PAGE COMPONENT ==========
 
 const ServiceDetailPage = () => {
   const { serviceId } = useParams<{ serviceId: string }>();
   const navigate = useNavigate();
+
   const [service, setService] = useState<Service | null>(null);
+  const [selectedTierId, setSelectedTierId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // BARU: State untuk menyimpan tier harga yang dipilih
-  const [selectedTierId, setSelectedTierId] = useState<string | null>(null);
-
   useEffect(() => {
     if (!serviceId) return;
+
+    let mounted = true;
 
     const fetchServiceDetail = async () => {
       setLoading(true);
       try {
         const response = await apiClient.get(`/service/${serviceId}`);
+        if (!mounted) return;
         setService(response.data.data);
       } catch (err) {
+        if (!mounted) return;
         setError("Layanan tidak ditemukan atau terjadi kesalahan.");
         console.error(err);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
     fetchServiceDetail();
+    return () => {
+      mounted = false;
+    };
   }, [serviceId]);
 
-  // BARU: Fungsi untuk menangani klik tombol booking
-  const handleBooking = () => {
-    // Validasi: Jika ada price tier, harus dipilih dulu
-    if (service?.hasPriceTiers && !selectedTierId) {
-      alert("Silakan pilih detail harga per usia terlebih dahulu.");
-      return;
-    }
-
-    // Kirim priceTierId sebagai query parameter jika ada
-    const bookingUrl = selectedTierId
-      ? `/booking/${serviceId}?priceTierId=${selectedTierId}`
-      : `/booking/${serviceId}`;
-
-    navigate(bookingUrl);
-  };
-
-  if (loading)
+  // LOADING
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-sky-300 border-t-pink-300 mx-auto mb-4"></div>
-          <p className="text-xl text-sky-600 font-medium">
-            Memuat Detail Layanan...
+      <div className="relative flex min-h-screen items-center justify-center">
+        <BackgroundDecor />
+        <div className="relative z-10 text-center">
+          <div className="relative mx-auto mb-4 h-14 w-14">
+            <div className="h-14 w-14 animate-spin rounded-full border-4 border-sky-200 border-t-sky-500" />
+            <Sparkles className="absolute inset-0 m-auto h-5 w-5 text-sky-500" />
+          </div>
+          <p className="text-sm font-medium text-slate-600">
+            Memuat detail layanan...
           </p>
         </div>
       </div>
     );
+  }
 
-  if (error)
+  // ERROR
+  if (error || !service) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-pink-50 flex items-center justify-center">
-        <div className="text-center p-8 bg-white rounded-2xl shadow-lg">
-          <div className="text-red-400 mb-4">
-            <Baby className="w-16 h-16 mx-auto opacity-50" />
+      <div className="relative flex min-h-screen items-center justify-center">
+        <BackgroundDecor />
+        <div className="relative z-10 max-w-md rounded-2xl border border-sky-100/80 bg-white/90 p-8 text-center shadow-xl">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-sky-50">
+            <Sparkles className="h-6 w-6 text-sky-500" />
           </div>
-          <p className="text-red-500 text-lg">{error}</p>
+          <p className="text-base font-semibold text-slate-800">
+            {error || "Layanan tidak ditemukan."}
+          </p>
+          <button
+            onClick={() => navigate("/services")}
+            className="mt-6 inline-flex items-center gap-2 rounded-full border border-sky-100 bg-sky-50 px-4 py-2 text-xs font-semibold text-sky-700 transition-colors hover:bg-sky-100"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Kembali ke daftar layanan
+          </button>
         </div>
       </div>
     );
+  }
 
-  if (!service) return null;
+  // ====== DERIVED DATA + SAFE NUMBERS ======
+
+  const hasPriceTiers =
+    Boolean(service.hasPriceTiers) &&
+    Array.isArray(service.priceTiers) &&
+    service.priceTiers.length > 0;
+
+  const minTierPrice = hasPriceTiers
+    ? Math.min(...service.priceTiers.map((t) => t.price))
+    : null;
+
+  const effectivePrice = hasPriceTiers
+    ? minTierPrice ?? undefined
+    : service.price ?? undefined;
+
+  // SAFE usia min & max (tidak mungkin null lagi)
+  const safeMinAge = hasPriceTiers
+    ? Math.min(
+        ...service.priceTiers.map((t) => (t.minBabyAge ?? 0))
+      )
+    : (service.minBabyAge ?? 0);
+
+  const safeMaxAge = hasPriceTiers
+    ? Math.max(
+        ...service.priceTiers.map((t) =>
+          t.maxBabyAge ?? (t.minBabyAge ?? 0)
+        )
+      )
+    : (service.maxBabyAge ?? safeMinAge);
+
+  const isBookingDisabled = hasPriceTiers && !selectedTierId;
+
+  const handleBooking = () => {
+    if (isBookingDisabled) {
+      alert("Silakan pilih detail harga per usia terlebih dahulu.");
+      return;
+    }
+
+    const bookingUrl =
+      hasPriceTiers && selectedTierId
+        ? `/booking/${serviceId}?priceTierId=${selectedTierId}`
+        : `/booking/${serviceId}`;
+
+    navigate(bookingUrl);
+  };
+
+  // ========== MAIN LAYOUT ==========
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-pink-50 relative">
-      <FloatingDecor />
+    <div className="relative min-h-screen">
+      <BackgroundDecor />
 
-      <div className="container mx-auto px-4 py-8 lg:py-16 relative z-10">
-        <div className="grid lg:grid-cols-5 gap-6 lg:gap-12">
-          {/* Kolom Kiri: Gambar & Info Kategori */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* Category Badge */}
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-sky-100 to-pink-100 text-sky-700 rounded-full px-4 py-2 text-sm font-bold uppercase tracking-wider border border-sky-200/50">
-              <Sparkles className="w-4 h-4" />
-              {service.category.name}
-            </div>
-
-            {/* Title */}
-            <div>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 leading-tight mb-4">
-                {service.name}
-              </h1>
-            </div>
-
-            {/* Image */}
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-tr from-sky-200/20 to-pink-200/20 rounded-2xl transform rotate-1 group-hover:rotate-2 transition-transform duration-300"></div>
-              <img
-                src={
-                  service.imageUrl ||
-                  "https://images.unsplash.com/photo-1544991887-a"
-                }
-                alt={service.name}
-                className="relative w-full h-auto rounded-2xl shadow-2xl aspect-video object-cover border-4 border-white group-hover:shadow-3xl transition-all duration-300"
-              />
-            </div>
-
-            {/* Description Card */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-sky-100/50 p-6 md:p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-2 h-8 bg-gradient-to-b from-sky-400 to-pink-400 rounded-full"></div>
-                <h3 className="font-bold text-xl md:text-2xl text-gray-800">
-                  Deskripsi Layanan
-                </h3>
-              </div>
-              <p className="text-gray-600 leading-relaxed text-sm md:text-base">
-                {service.description}
-              </p>
-            </div>
+      <div className="relative z-10 mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16 space-y-10">
+        {/* BREADCRUMB + CATEGORY */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-slate-400">
+            <Link to="/" className="transition-colors hover:text-slate-700">
+              Home
+            </Link>
+            <span>·</span>
+            <Link
+              to="/services"
+              className="transition-colors hover:text-slate-700"
+            >
+              Layanan
+            </Link>
+            <span>·</span>
+            <span className="text-slate-600">Detail</span>
           </div>
 
-          {/* Kolom Kanan: Detail, Harga & Tombol Aksi */}
-          <div className="lg:col-span-2">
-            <div className="sticky top-24 bg-white/90 backdrop-blur-lg p-6 md:p-8 rounded-3xl shadow-2xl border border-sky-100/50">
-              {/* Price Section */}
-              <div className="mb-8 text-center">
-                <div className="bg-gradient-to-r from-sky-50 to-pink-50 rounded-2xl p-6 border border-sky-100/50">
-                  {service.hasPriceTiers ? (
-                    <div>
-                      <p className="text-base text-gray-600 font-medium">
-                        Mulai dari
-                      </p>
-                      <p className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-sky-600 to-pink-600 bg-clip-text text-transparent">
-                        Rp{" "}
-                        {Math.min(
-                          ...service.priceTiers.map((t) => t.price)
-                        ).toLocaleString("id-ID")}
-                      </p>
-                    </div>
-                  ) : (
-                    <div>
-                      <p className="text-base text-gray-600 font-medium">
-                        Harga
-                      </p>
-                      <p className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-sky-600 to-pink-600 bg-clip-text text-transparent">
-                        Rp {service.price?.toLocaleString("id-ID")}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
+          {service.category?.name && (
+            <span className="inline-flex items-center gap-2 rounded-full border border-sky-100 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-700 shadow-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              {service.category.name}
+            </span>
+          )}
+        </div>
 
-              {/* Info Pills */}
-              <div className="space-y-3 mb-8">
-                <InfoPill
-                  icon={Clock}
-                  text={`Durasi ${service.duration} menit`}
-                />
-                <InfoPill
-                  icon={Baby}
-                  text={`Untuk usia ${
-                    service.hasPriceTiers
-                      ? `${Math.min(
-                          ...service.priceTiers.map((t) => t.minBabyAge)
-                        )}-${Math.max(
-                          ...service.priceTiers.map((t) => t.maxBabyAge)
-                        )}`
-                      : `${service.minBabyAge}-${service.maxBabyAge}`
-                  } bulan`}
-                />
-              </div>
+        {/* TITLE + INTRO */}
+        <header className="space-y-5">
+          <div className="inline-flex items-center gap-2 rounded-full border border-sky-100 bg-white/80 px-3 py-1 text-[11px] font-semibold text-sky-700 shadow-sm">
+            <Sparkles className="h-3.5 w-3.5" />
+            Ema Mom Kids · Spa Bayi & Ibu
+          </div>
 
-              {/* Price Tiers - DIUBAH */}
-              {service.hasPriceTiers && (
-                <div className="mb-8">
-                  <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <div className="w-2 h-6 bg-gradient-to-b from-sky-400 to-pink-400 rounded-full"></div>
-                    Pilih Detail Harga per Usia
-                  </h4>
-                  <div className="space-y-3">
-                    {service.priceTiers.map((tier) => {
-                      const isSelected = selectedTierId === tier.id;
-                      return (
-                        <button
-                          key={tier.id}
-                          onClick={() => setSelectedTierId(tier.id)}
-                          className={`w-full flex justify-between items-center text-sm p-4 rounded-xl border-2 transition-all duration-200 transform hover:scale-105 ${
-                            isSelected
-                              ? "border-sky-500 bg-sky-50 shadow-lg ring-2 ring-sky-200"
-                              : "border-gray-200 bg-white hover:border-sky-300"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3 text-left">
-                            <div
-                              className={`w-3 h-3 rounded-full ${
-                                isSelected ? "bg-sky-500" : "bg-gray-300"
-                              }`}
-                            ></div>
-                            <div>
-                              <span className="font-semibold text-gray-700">
-                                {tier.tierName}
-                              </span>
-                              <span className="block text-gray-500 text-xs">
-                                ({tier.minBabyAge}-{tier.maxBabyAge} bln)
-                              </span>
-                            </div>
-                          </div>
-                          <span className="font-bold text-gray-900">
-                            Rp {tier.price.toLocaleString("id-ID")}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-[2.5rem] lg:leading-[1.05]">
+              {service.name}
+            </h1>
+            <div className="mt-3 h-px w-16 rounded-full bg-gradient-to-r from-sky-400 to-sky-200" />
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-600 sm:text-base">
+              Sesi perawatan lembut untuk mendukung tumbuh kembang, relaksasi,
+              dan bonding hangat antara Bunda dan si kecil di ruang yang bersih
+              dan nyaman.
+            </p>
+          </div>
+        </header>
 
-              {/* CTA Button - DIUBAH */}
-              <button
-                onClick={handleBooking}
-                disabled={service.hasPriceTiers && !selectedTierId}
-                className="w-full group relative overflow-hidden bg-gradient-to-r from-sky-500 to-pink-500 hover:from-sky-600 hover:to-pink-600 text-white font-bold py-4 px-6 rounded-2xl text-base md:text-lg transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed disabled:scale-100"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-pink-400/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out"></div>
-                <div className="relative flex items-center justify-center gap-x-2">
-                  <Heart className="w-5 h-5" />
-                  {service.hasPriceTiers && !selectedTierId
-                    ? "Pilih Harga Dahulu"
-                    : "Reservasi Sekarang"}
-                  <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
-                </div>
-              </button>
-
-              {/* Trust Badge */}
-              <div className="mt-6 flex items-center justify-center gap-x-2 text-sm text-gray-500 bg-green-50 p-3 rounded-xl border border-green-100">
-                <ShieldCheck className="w-5 h-5 text-green-500" />
-                <span className="font-medium">
-                  Transaksi Aman & Terapis Profesional
-                </span>
-              </div>
+        {/* IMAGE HERO */}
+        <div className="relative">
+          <div className="pointer-events-none absolute inset-0 translate-x-2 translate-y-2 rounded-3xl border border-sky-100/70" />
+          <div className="relative overflow-hidden rounded-3xl border border-white/80 bg-slate-900/80 shadow-[0_24px_70px_rgba(15,23,42,0.35)]">
+            <img
+              src={
+                service.imageUrl ||
+                "https://images.unsplash.com/photo-1544991887-a"
+              }
+              alt={service.name}
+              loading="lazy"
+              className="
+                w-full
+                h-auto
+                max-h-[460px]
+                object-cover
+                object-center
+                md:max-h-[520px]
+              "
+            />
+            <div className="pointer-events-none absolute left-4 top-4 inline-flex items-center rounded-full bg-sky-50/95 px-3 py-1 text-[11px] font-semibold text-sky-800 shadow-sm">
+              Ruang perawatan Ema Mom Kids
             </div>
           </div>
         </div>
+
+        {/* INFO PILLS */}
+        <div className="flex flex-wrap gap-3">
+          <InfoPill
+            icon={Clock}
+            label="Durasi"
+            value={`±${service.duration} menit`}
+          />
+          <InfoPill
+            icon={Baby}
+            label="Rekomendasi usia"
+            value={formatAgeRange(safeMinAge, safeMaxAge)}
+          />
+        </div>
+
+        {/* DESCRIPTION CARD */}
+        <section className="rounded-2xl border border-sky-100/80 bg-white/90 p-6 shadow-md backdrop-blur-sm md:p-7">
+          <div className="mb-4 flex items-center gap-3">
+            <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-sky-500 to-sky-300" />
+            <h2 className="text-lg font-semibold text-slate-900 md:text-xl">
+              Deskripsi layanan
+            </h2>
+          </div>
+          <p className="text-sm leading-relaxed text-slate-600 md:text-base">
+            {service.description}
+          </p>
+        </section>
+
+        {/* BOOKING / PRICE CARD */}
+        <section className="space-y-6 rounded-3xl border border-sky-100/80 bg-white/95 p-6 shadow-2xl backdrop-blur-md md:p-7">
+          {/* PRICE SUMMARY */}
+          <div className="rounded-2xl border border-sky-100 bg-gradient-to-r from-sky-50 via-white to-sky-50 p-5 text-center shadow-sm">
+            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
+              {hasPriceTiers ? "Mulai dari" : "Harga"}
+            </p>
+            <p className="bg-gradient-to-r from-sky-600 to-sky-700 bg-clip-text text-3xl font-extrabold text-transparent md:text-[2.1rem]">
+              {effectivePrice
+                ? `Rp ${effectivePrice.toLocaleString("id-ID")}`
+                : "-"}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              {hasPriceTiers
+                ? "Harga menyesuaikan usia bayi"
+                : "Harga untuk 1 sesi perawatan"}
+            </p>
+          </div>
+
+          {/* DETAIL HARGA PER USIA */}
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-slate-900">
+                Detail harga per usia
+              </h3>
+              <span className="text-[11px] text-slate-500">
+                {hasPriceTiers
+                  ? "Pilih paket sesuai usia bayi"
+                  : "Harga tunggal untuk rentang usia"}
+              </span>
+            </div>
+
+            {hasPriceTiers ? (
+              <div className="space-y-3">
+                {service.priceTiers.map((tier) => {
+                  const isSelected = selectedTierId === tier.id;
+                  const tierMin = tier.minBabyAge ?? 0;
+                  const tierMax = tier.maxBabyAge ?? tierMin;
+
+                  return (
+                    <button
+                      key={tier.id}
+                      type="button"
+                      onClick={() => setSelectedTierId(tier.id)}
+                      className={[
+                        "flex w-full items-center justify-between rounded-xl border-2 p-4 text-sm transition-all duration-200",
+                        "hover:-translate-y-[1px] hover:shadow-md",
+                        isSelected
+                          ? "border-sky-500 bg-sky-50 shadow-lg ring-2 ring-sky-200"
+                          : "border-slate-200 bg-white hover:border-sky-300",
+                      ].join(" ")}
+                    >
+                      <div className="flex items-center gap-3 text-left">
+                        <span
+                          className={`h-3 w-3 rounded-full ${
+                            isSelected ? "bg-sky-500" : "bg-slate-300"
+                          }`}
+                        />
+                        <div>
+                          <p className="font-semibold text-slate-800">
+                            {tier.tierName}
+                          </p>
+                          <p className="text-[11px] text-slate-500">
+                            {formatAgeRange(tierMin, tierMax)}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="font-semibold text-slate-900">
+                        Rp {tier.price.toLocaleString("id-ID")}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="rounded-xl border-2 border-slate-200 bg-white p-4 text-sm shadow-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="h-3 w-3 rounded-full bg-sky-400" />
+                    <div>
+                      <p className="font-semibold text-slate-800">
+                        Satu harga untuk semua
+                      </p>
+                      <p className="text-[11px] text-slate-500">
+                        {formatAgeRange(safeMinAge, safeMaxAge)} · 1 sesi
+                        perawatan
+                      </p>
+                    </div>
+                  </div>
+                  {service.price && (
+                    <span className="font-semibold text-slate-900">
+                      Rp {service.price.toLocaleString("id-ID")}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* CTA BUTTON */}
+          <button
+            type="button"
+            onClick={handleBooking}
+            disabled={isBookingDisabled}
+            className={[
+              "group relative inline-flex w-full items-center justify-center overflow-hidden rounded-2xl px-6 py-3.5 text-sm sm:text-base font-semibold text-white",
+              "bg-gradient-to-r from-sky-500 to-sky-600 shadow-xl transition-all duration-300",
+              "hover:from-sky-600 hover:to-sky-700 hover:shadow-2xl hover:shadow-sky-300/70",
+              isBookingDisabled
+                ? "cursor-not-allowed from-slate-400 to-slate-500 hover:from-slate-400 hover:to-slate-500 hover:shadow-xl hover:scale-100"
+                : "hover:scale-[1.02]",
+            ].join(" ")}
+          >
+            <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-white/20 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[100%]" />
+            <span className="relative flex items-center gap-2">
+              {isBookingDisabled
+                ? "Pilih harga terlebih dahulu"
+                : "Reservasi sekarang"}
+              <ChevronRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+            </span>
+          </button>
+
+          {/* TRUST BADGE */}
+          <div className="flex items-center justify-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/80 px-3 py-2 text-[11px] font-medium text-emerald-700">
+            <ShieldCheck className="h-4 w-4 text-emerald-500" />
+            <span>
+              Terapis tersertifikasi &amp; jadwal dikonfirmasi otomatis
+            </span>
+          </div>
+        </section>
       </div>
     </div>
   );
