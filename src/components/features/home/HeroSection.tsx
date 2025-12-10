@@ -30,12 +30,10 @@ const itemVariants = {
 
 const HeroSection: React.FC = () => {
   return (
-    <section className="relative overflow-hidden bg-slate-50">
-      {/* Soft gradients */}
-      <div className="pointer-events-none absolute inset-x-0 -top-40 h-64 bg-gradient-to-b from-sky-100/80 via-slate-50 to-transparent" />
-      <div className="pointer-events-none absolute -right-32 bottom-0 h-80 w-80 rounded-full bg-sky-100/60 blur-3xl" />
-      {/* Noise texture (optional: buat /public/textures/noise.png) */}
-      <div className="pointer-events-none absolute inset-0 opacity-[0.05] mix-blend-multiply bg-[url('/textures/noise.png')]" />
+    <section className="relative overflow-hidden">
+      {/* Soft gradients khusus hero (tipis & fade, tidak ubah warna dasar) */}
+      <div className="pointer-events-none absolute inset-x-0 -top-40 h-64 bg-gradient-to-b from-sky-100/80 via-transparent to-transparent" />
+      <div className="pointer-events-none absolute -right-32 bottom-0 h-80 w-80 rounded-full bg-sky-100/40 blur-3xl" />
 
       <div className="relative mx-auto flex max-w-6xl flex-col gap-12 px-4 py-16 sm:px-6 md:py-24 lg:flex-row lg:items-center lg:gap-16 lg:px-8">
         {/* LEFT: copy + CTA */}
@@ -45,7 +43,6 @@ const HeroSection: React.FC = () => {
           animate="visible"
           className="w-full lg:w-[52%]"
         >
-          {/* Badge */}
           <motion.div
             variants={itemVariants}
             className="inline-flex items-center gap-2 rounded-full border border-sky-200/70 bg-white/80 px-4 py-1.5 text-xs font-semibold text-sky-700 shadow-sm backdrop-blur"
@@ -54,7 +51,6 @@ const HeroSection: React.FC = () => {
             <span>Ema Mom Kids · Spa Bayi &amp; Ibu</span>
           </motion.div>
 
-          {/* Heading */}
           <motion.h1
             variants={itemVariants}
             className="mt-6 text-balance font-bold tracking-tight text-slate-900 text-3xl sm:text-4xl md:text-5xl lg:text-6xl lg:leading-[1.05]"
@@ -65,7 +61,6 @@ const HeroSection: React.FC = () => {
             </span>
           </motion.h1>
 
-          {/* Subcopy */}
           <motion.p
             variants={itemVariants}
             className="mt-5 max-w-xl text-sm sm:text-base md:text-lg leading-relaxed text-slate-600"
@@ -75,7 +70,6 @@ const HeroSection: React.FC = () => {
             secara online dan tiba tanpa perlu menunggu lama.
           </motion.p>
 
-          {/* CTA */}
           <motion.div
             variants={itemVariants}
             className="mt-8 flex flex-wrap items-center gap-4"
@@ -103,7 +97,6 @@ const HeroSection: React.FC = () => {
             </a>
           </motion.div>
 
-          {/* Trust / info kecil */}
           <motion.div
             variants={itemVariants}
             className="mt-6 flex flex-wrap items-center gap-4 text-xs text-slate-500"
@@ -129,19 +122,16 @@ const HeroSection: React.FC = () => {
             }}
             className="relative mx-auto max-w-md overflow-hidden rounded-3xl border border-white/70 bg-slate-900/80 shadow-[0_28px_80px_rgba(15,23,42,0.45)]"
           >
-            {/* Foto fasad */}
             <img
               src="/ema-facade.jpg"
               alt="Fasad Ema Mom Kids Baby Spa"
               className="h-80 w-full object-cover sm:h-96"
             />
 
-            {/* top pill */}
             <div className="pointer-events-none absolute left-4 top-4 inline-flex items-center rounded-full bg-sky-50/90 px-3 py-1 text-[11px] font-semibold text-sky-800 shadow-sm backdrop-blur">
               Fasad Ema Mom Kids Baby Spa
             </div>
 
-            {/* bottom overlay info */}
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent px-4 pb-4 pt-16 text-slate-50">
               <div className="flex flex-col gap-2 text-sm">
                 <div className="flex items-center justify-between gap-2">

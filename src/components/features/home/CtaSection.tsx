@@ -1,27 +1,64 @@
 // /src/components/features/home/CtaSection.tsx
 import React from "react";
+import { motion } from "framer-motion";
 import Button from "../../ui/Button";
 
 const CtaSection: React.FC = () => {
   return (
-    <section className="bg-gradient-to-br from-blue-50 to-sky-50 py-20">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-3xl p-12 lg:p-16 text-center shadow-xl">
-          <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-white">
-            Siap Manjakan Buah Hati & Bunda?
-          </h2>
-          <p className="max-w-3xl mx-auto mb-10 text-blue-50 text-lg leading-relaxed">
-            Jangan tunda lagi, berikan pengalaman relaksasi terbaik untuk orang
-            terkasih. Jadwalkan sesi Anda sekarang juga.
-          </p>
-          <Button
-            to="/booking"
-            
-            className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+    <section className="relative py-24">
+      <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          viewport={{ once: true, amount: 0.3 }}
+          whileHover={{
+            y: -6,
+            scale: 1.01,
+            transition: { duration: 0.4, ease: "easeOut" },
+          }}
+          className="relative overflow-hidden rounded-3xl bg-white/60 backdrop-blur-xl shadow-[0_18px_60px_rgba(30,64,110,0.16)] border border-white/50 text-center px-8 py-16 sm:px-12 sm:py-20"
+        >
+          <div className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-sky-300/25 blur-3xl" />
+
+          <motion.h2
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
+            viewport={{ once: true }}
+            className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900"
           >
-            Booking Sekarang
-          </Button>
-        </div>
+            Siap Manjakan Bunda &amp; Si Kecil?
+          </motion.h2>
+
+          <motion.p
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
+            viewport={{ once: true }}
+            className="mx-auto mt-4 max-w-xl text-base sm:text-lg md:text-xl leading-relaxed text-slate-600"
+          >
+            Hadirkan momen relaksasi penuh kehangatan, rasa aman, dan perhatian
+            terbaik untuk keluarga Anda. Jadwalkan sesi spa dalam satu klik.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut", delay: 0.3 }}
+            viewport={{ once: true }}
+            className="mt-10 flex justify-center"
+          >
+            <Button
+              to="/booking"
+              size="lg"
+              variant="sky"
+              className="shadow-xl shadow-sky-200/50 hover:shadow-2xl hover:shadow-sky-300/60 !px-10 !py-4 !text-lg"
+            >
+              Booking Sekarang
+            </Button>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );

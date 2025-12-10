@@ -37,7 +37,6 @@ const ServicesSection: React.FC = () => {
         const response = await apiClient.get("/service?isActive=true");
 
         if (response.data?.success && Array.isArray(response.data.data)) {
-          // Limit to first 3 services for home page
           setServices(response.data.data.slice(0, 3));
         } else {
           setServices([]);
@@ -65,7 +64,6 @@ const ServicesSection: React.FC = () => {
     fetchServices();
   }, []);
 
-  // Jangan render section kalau sudah selesai loading dan error / kosong
   if (!loading && (error || services.length === 0)) {
     return null;
   }
@@ -74,13 +72,7 @@ const ServicesSection: React.FC = () => {
   const others = services.slice(1);
 
   return (
-    <section className="relative overflow-hidden py-24">
-      {/* Background selaras dengan hero */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white via-sky-50/70 to-sky-100/40" />
-      <div className="pointer-events-none absolute -top-40 right-0 h-72 w-72 rounded-full bg-sky-100/60 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 left-0 h-64 w-64 rounded-full bg-pink-100/50 blur-3xl" />
-      <div className="pointer-events-none absolute inset-0 opacity-[0.04] bg-[url('/textures/noise.png')] mix-blend-soft-light" />
-
+    <section className="relative py-20 sm:py-24">
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* TITLE ZONE */}
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
@@ -132,7 +124,6 @@ const ServicesSection: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-900/25 to-transparent" />
 
                   <div className="relative flex min-h-[360px] flex-col justify-end p-8 sm:p-9 lg:p-10">
@@ -233,7 +224,6 @@ const ServicesSection: React.FC = () => {
                     </motion.article>
                   ))}
 
-                  {/* Kalau cuma ada 1 layanan */}
                   {others.length === 0 && (
                     <motion.div
                       variants={cardVariants}
@@ -246,76 +236,7 @@ const ServicesSection: React.FC = () => {
                 </div>
               </motion.div>
             )}
-
-            {/* Kalau somehow tidak ada featured tapi services ada (edge case) */}
-            {!featured && services.length > 0 && (
-              <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                {services.map((service) => (
-                  <motion.article
-                    key={service.id}
-                    variants={cardVariants}
-                    className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-sky-100/70 bg-white shadow-md shadow-sky-100/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-xl"
-                  >
-                    <div className="relative h-40 w-full overflow-hidden">
-                      {service.imageUrl ? (
-                        <img
-                          src={service.imageUrl}
-                          alt={service.name}
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-50 to-sky-100">
-                          <Sparkles className="h-8 w-8 text-sky-400" />
-                        </div>
-                      )}
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-900/15 to-transparent" />
-                    </div>
-
-                    <div className="flex flex-1 flex-col p-6">
-                      <h3 className="mb-2 text-lg font-semibold text-slate-900">
-                        {service.name}
-                      </h3>
-                      <p className="mb-4 text-sm text-slate-600 leading-relaxed line-clamp-3">
-                        {service.description ||
-                          "Layanan berkualitas tinggi untuk mendukung kenyamanan dan relaksasi keluarga Anda."}
-                      </p>
-
-                      <div className="mt-auto flex items-center justify-between gap-4">
-                        {service.price && (
-                          <p className="text-sm font-semibold text-sky-700">
-                            Rp {service.price.toLocaleString("id-ID")}
-                          </p>
-                        )}
-                        <Link
-                          to="/services"
-                          className="inline-flex items-center text-xs font-semibold text-slate-700 hover:text-slate-900 transition-colors group"
-                        >
-                          Detail layanan
-                          <span className="ml-1 translate-y-[1px] transition-transform group-hover:translate-x-1">
-                            →
-                          </span>
-                        </Link>
-                      </div>
-                    </div>
-                  </motion.article>
-                ))}
-              </div>
-            )}
           </>
-        )}
-
-        {/* View All Services Button */}
-        {!loading && services.length > 0 && (
-          <div className="mt-14 text-center">
-            <Link
-              to="/services"
-              className="inline-flex items-center rounded-full bg-gradient-to-r from-sky-500 to-sky-600 px-7 py-3 text-sm sm:text-base font-semibold text-white shadow-lg shadow-sky-300/60 transition-all duration-300 hover:shadow-xl hover:brightness-110"
-            >
-              <Sparkles className="mr-2 h-4 w-4" />
-              Lihat Semua Layanan
-            </Link>
-          </div>
         )}
       </div>
     </section>
