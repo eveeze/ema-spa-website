@@ -181,8 +181,7 @@ const RescheduleModal = ({
   isOpen,
   onClose,
   onSubmit,
-  isSubmitting,
-  currentServiceDuration, // disiapkan kalau nanti mau dipakai filter durasi
+  isSubmitting, // disiapkan kalau nanti mau dipakai filter durasi
 }: RescheduleModalProps) => {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
