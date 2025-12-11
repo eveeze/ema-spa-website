@@ -1,11 +1,11 @@
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-// PERBAIKAN: Import kedua hook yang relevan
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   useCustomerProfile,
   useUpdateCustomerProfile,
-} from "../hooks/useCustomerHooks";
-import { Loader2, AlertTriangle } from "lucide-react";
+} from '../hooks/useCustomerHooks';
+import { Loader2, AlertTriangle, User as UserIcon } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 // Tipe data HANYA untuk field yang ada di form.
 type ProfileFormData = {
@@ -14,10 +14,10 @@ type ProfileFormData = {
 };
 
 const CustomerProfile = () => {
-  // PERBAIKAN: Panggil kedua hook secara terpisah.
-  // 1. Hook untuk mengambil data profil.
+  // 1. Ambil profil
   const { data: profile, isLoading, isError } = useCustomerProfile();
-  // 2. Hook untuk melakukan aksi update.
+
+  // 2. Hook untuk update
   const { mutate: updateProfile, isPending: isUpdating } =
     useUpdateCustomerProfile();
 
@@ -38,125 +38,196 @@ const CustomerProfile = () => {
   }, [profile, reset]);
 
   const onSubmit = (data: ProfileFormData) => {
-    // Di sini, `updateProfile` adalah fungsi `mutate` dari `useUpdateCustomerProfile`.
-    // Kita perlu memastikan payload-nya sesuai dengan yang diharapkan oleh API.
     if (!profile?.id) {
-      console.error("Cannot update profile without a valid customer ID.");
-      // Tampilkan notifikasi error ke pengguna di sini
+      console.error('Cannot update profile without a valid customer ID.');
       return;
     }
+
     updateProfile({
-      id: profile.id, // Sertakan ID dari data profil yang sudah ada
+      id: profile.id,
       ...data,
     });
   };
 
-  // State Handling untuk UI (sudah benar)
+  // ========== LOADING & ERROR STATE ==========
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-10">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-        <span className="ml-3 text-gray-600">Memuat profil...</span>
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-3 text-slate-600">
+        <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+        <p className="text-sm">Memuat profil Anda...</p>
       </div>
     );
   }
 
   if (isError || !profile) {
     return (
-      <div className="flex items-center gap-2 rounded-md bg-red-50 p-4 text-red-700">
-        <AlertTriangle className="h-5 w-5" />
-        <span>
-          Terjadi kesalahan saat memuat profil Anda. Silakan coba lagi nanti.
-        </span>
+      <div className="mt-4 rounded-2xl border border-rose-100 bg-rose-50/80 p-4 text-sm text-rose-700">
+        <div className="flex items-start gap-2">
+          <AlertTriangle className="mt-[2px] h-5 w-5" />
+          <p>
+            Terjadi kesalahan saat memuat profil Anda. Silakan coba lagi nanti.
+          </p>
+        </div>
       </div>
     );
   }
 
-  // Render form jika data sudah tersedia (sudah benar)
-  return (
-    <div>
-      <h1 className="mb-2 text-3xl font-bold text-gray-800">Profil Saya</h1>
-      <p className="mb-8 text-gray-500">
-        Kelola informasi profil dan kontak Anda agar kami dapat melayani Anda
-        lebih baik.
-      </p>
+  // ========== MAIN UI ==========
 
-      <div className="max-w-2xl rounded-xl bg-white p-8 shadow-sm">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div>
+  return (
+    <div className="pb-10 pt-2 md:pt-4">
+      {/* Header */}
+      <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-600">
+            Pengaturan Akun
+          </p>
+          <h1 className="mt-1 text-xl font-semibold text-slate-900 md:text-2xl">
+            Profil Saya
+          </h1>
+          <p className="mt-1 max-w-xl text-xs text-slate-500 md:text-sm">
+            Kelola informasi dasar agar tim Ema Baby Spa dapat menghubungi Anda
+            dengan nyaman sebelum dan sesudah sesi perawatan.
+          </p>
+        </div>
+      </div>
+
+      {/* Card */}
+      <motion.div
+        className="max-w-3xl rounded-3xl bg-white/95 shadow-xl ring-1 ring-slate-100"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+      >
+        {/* Header dalam card */}
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 md:px-7">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-50 text-sky-600">
+              <UserIcon className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-800">
+                Informasi Kontak
+              </p>
+              <p className="text-[11px] text-slate-500">
+                Data ini digunakan untuk keperluan reservasi & pengingat jadwal.
+              </p>
+            </div>
+          </div>
+
+          <div className="hidden text-right text-[11px] text-slate-400 md:block">
+            <p>ID Pelanggan</p>
+            <p className="font-mono text-[11px] text-slate-500">
+              {profile.id?.slice(0, 8)}…
+            </p>
+          </div>
+        </div>
+
+        {/* Form */}
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-6 px-5 py-6 md:px-7 md:py-7"
+        >
+          {/* Email (read only) */}
+          <div className="space-y-1.5">
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
+              className="text-xs font-medium text-slate-700"
             >
               Alamat Email
             </label>
-            <div className="mt-1">
-              <input
-                type="email"
-                id="email"
-                value={profile.email}
-                disabled
-                className="block w-full cursor-not-allowed rounded-md border-gray-300 bg-gray-100 p-2 shadow-sm sm:text-sm"
-              />
-            </div>
+            <input
+              type="email"
+              id="email"
+              value={profile.email}
+              disabled
+              className="block w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-600 shadow-inner focus:outline-none"
+            />
+            <p className="text-[11px] text-slate-400">
+              Email digunakan untuk akun dan notifikasi penting. Hubungi admin
+              apabila ingin mengganti email.
+            </p>
           </div>
-          <div>
+
+          {/* Nama Lengkap */}
+          <div className="space-y-1.5">
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-gray-700"
+              className="text-xs font-medium text-slate-700"
             >
               Nama Lengkap
             </label>
-            <div className="mt-1">
-              <input
-                {...register("name", { required: "Nama tidak boleh kosong" })}
-                type="text"
-                id="name"
-                className="block w-full rounded-md border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              />
-              {errors.name && (
-                <p className="mt-2 text-sm text-red-600">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
-          </div>
-          <div>
-            <label
-              htmlFor="phoneNumber"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Nomor Telepon
-            </label>
-            <div className="mt-1">
-              <input
-                {...register("phoneNumber", {
-                  required: "Nomor telepon tidak boleh kosong",
-                })}
-                type="tel"
-                id="phoneNumber"
-                className="block w-full rounded-md border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              />
-              {errors.phoneNumber && (
-                <p className="mt-2 text-sm text-red-600">
-                  {errors.phoneNumber.message}
-                </p>
-              )}
-            </div>
+            <input
+              {...register('name', { required: 'Nama tidak boleh kosong' })}
+              type="text"
+              id="name"
+              placeholder="Masukkan nama lengkap Anda"
+              className="block w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
+            />
+            {errors.name && (
+              <p className="text-[11px] text-rose-600">{errors.name.message}</p>
+            )}
           </div>
 
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={isUpdating}
-              className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-400"
+          {/* Nomor Telepon */}
+          <div className="space-y-1.5">
+            <label
+              htmlFor="phoneNumber"
+              className="text-xs font-medium text-slate-700"
             >
-              {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Simpan Perubahan
-            </button>
+              Nomor Telepon / WhatsApp
+            </label>
+            <input
+              {...register('phoneNumber', {
+                required: 'Nomor telepon tidak boleh kosong',
+              })}
+              type="tel"
+              id="phoneNumber"
+              placeholder="Contoh: 08xxxxxxxxxx"
+              className="block w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
+            />
+            {errors.phoneNumber && (
+              <p className="text-[11px] text-rose-600">
+                {errors.phoneNumber.message}
+              </p>
+            )}
+            <p className="text-[11px] text-slate-400">
+              Pastikan nomor aktif dan terhubung ke WhatsApp untuk pengingat
+              jadwal dan konfirmasi reservasi.
+            </p>
+          </div>
+
+          {/* Footer actions */}
+          <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[11px] text-slate-400">
+              Perubahan profil akan langsung tersimpan pada akun Anda.
+            </p>
+            <div className="flex justify-end">
+              <motion.button
+                type="submit"
+                disabled={isUpdating}
+                whileHover={
+                  !isUpdating
+                    ? {
+                        y: -1,
+                        boxShadow: '0 16px 30px rgba(56,189,248,0.28)',
+                      }
+                    : {}
+                }
+                whileTap={!isUpdating ? { scale: 0.97 } : {}}
+                transition={{ duration: 0.16 }}
+                className="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:bg-slate-400"
+              >
+                {isUpdating && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Simpan Perubahan
+              </motion.button>
+            </div>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 };

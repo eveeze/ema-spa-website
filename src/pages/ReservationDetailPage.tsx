@@ -1,7 +1,7 @@
 // src/pages/ReservationDetailPage.tsx
 
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Loader2,
   AlertTriangle,
@@ -12,149 +12,193 @@ import {
   X,
   Edit,
   ArrowRight,
-} from "lucide-react";
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   useCustomerReservationById,
   usePaymentDetails,
   useCreateOnlineRating,
   useRescheduleReservation,
   useAvailableSchedule,
-} from "../hooks/useCustomerHooks";
-import { Reservation, Payment } from "../types";
+} from '../hooks/useCustomerHooks';
+import { Reservation, Payment } from '../types';
 
-// --- KOMPONEN MODAL RATING ---
+/* -------------------------------------------------------------------------- */
+/*                             RATING MODAL (UI)                              */
+/* -------------------------------------------------------------------------- */
+
+interface RatingModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (rating: number, comment: string) => void;
+  isSubmitting: boolean;
+}
+
 const RatingModal = ({
   isOpen,
   onClose,
   onSubmit,
   isSubmitting,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (rating: number, comment: string) => void;
-  isSubmitting: boolean;
-}) => {
+}: RatingModalProps) => {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const [comment, setComment] = useState("");
-  const [error, setError] = useState("");
+  const [comment, setComment] = useState('');
+  const [error, setError] = useState('');
 
   if (!isOpen) return null;
 
   const handleSubmit = () => {
     if (rating === 0) {
-      setError("Rating bintang wajib diisi.");
+      setError('Rating bintang wajib diisi.');
       return;
     }
-    setError("");
+    setError('');
     onSubmit(rating, comment);
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-gray-800">
-            Bagaimana Pengalaman Anda?
-          </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm"
+          onClick={onClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div
+            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0, y: 16, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.96 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="mx-4 w-full max-w-md rounded-3xl bg-white/95 p-6 shadow-xl shadow-amber-100/70 ring-1 ring-slate-100"
           >
-            <X size={24} />
-          </button>
-        </div>
-        <p className="text-gray-600 mb-4">
-          Beri penilaian Anda untuk layanan ini.
-        </p>
-        <div className="flex justify-center items-center mb-4 space-x-2">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Star
-              key={star}
-              className={`cursor-pointer transition-colors duration-200`}
-              size={36}
-              color={(hoverRating || rating) >= star ? "#f59e0b" : "#d1d5db"}
-              fill={(hoverRating || rating) >= star ? "#f59e0b" : "none"}
-              onMouseEnter={() => setHoverRating(star)}
-              onMouseLeave={() => setHoverRating(0)}
-              onClick={() => setRating(star)}
-            />
-          ))}
-        </div>
-        <div className="mb-4">
-          <label
-            htmlFor="comment"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Komentar (Opsional)
-          </label>
-          <textarea
-            id="comment"
-            rows={4}
-            className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Bagikan pengalaman Anda di sini..."
-          />
-        </div>
-        {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
-        <div className="flex justify-end space-x-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
-            disabled={isSubmitting}
-          >
-            Batal
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300 flex items-center"
-            disabled={isSubmitting}
-          >
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Kirim Ulasan
-          </button>
-        </div>
-      </div>
-    </div>
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-500">
+                  Ulasan Layanan
+                </p>
+                <h3 className="mt-1 text-lg font-semibold text-slate-900">
+                  Bagaimana pengalaman Anda?
+                </h3>
+                <p className="mt-1 text-xs text-slate-500">
+                  Beri penilaian jujur agar kami dapat terus memperbaiki
+                  kualitas perawatan untuk si kecil.
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mb-4 flex items-center justify-center gap-2">
+              {[1, 2, 3, 4, 5].map((star) => {
+                const active = (hoverRating || rating) >= star;
+                return (
+                  <button
+                    key={star}
+                    type="button"
+                    className="group"
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    onClick={() => setRating(star)}
+                  >
+                    <Star
+                      className="transition-transform duration-150 group-hover:scale-110"
+                      size={34}
+                      color={active ? '#f59e0b' : '#e5e7eb'}
+                      fill={active ? '#f59e0b' : 'none'}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mb-4">
+              <label
+                htmlFor="comment"
+                className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"
+              >
+                Komentar (opsional)
+              </label>
+              <textarea
+                id="comment"
+                rows={4}
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm text-slate-800 shadow-inner focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Ceritakan bagaimana pengalaman bayi dan Anda saat sesi spa..."
+              />
+            </div>
+
+            {error && (
+              <p className="mb-3 text-xs font-medium text-red-600">{error}</p>
+            )}
+
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="rounded-full px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-4 py-2 text-xs font-semibold text-white shadow-md shadow-amber-200 hover:from-amber-600 hover:to-amber-700 disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-400 disabled:shadow-none"
+              >
+                {isSubmitting && (
+                  <Loader2 className="h-4 w-4 animate-spin text-white" />
+                )}
+                Kirim Ulasan
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
-// --- KOMPONEN MODAL RESCHEDULE (BARU) ---
-const RescheduleModal = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  isSubmitting,
-}: {
+/* -------------------------------------------------------------------------- */
+/*                          RESCHEDULE MODAL (UI)                             */
+/* -------------------------------------------------------------------------- */
+
+interface RescheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (newSessionId: string) => void;
   isSubmitting: boolean;
   currentServiceDuration: number;
-}) => {
-  const [selectedDate, setSelectedDate] = useState("");
+}
+
+const RescheduleModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  isSubmitting,
+  currentServiceDuration, // disiapkan kalau nanti mau dipakai filter durasi
+}: RescheduleModalProps) => {
+  const [selectedDate, setSelectedDate] = useState('');
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
-    null
+    null,
   );
 
-  // Gunakan hook useAvailableSchedule untuk mengambil slot
   const {
     data: timeSlots,
     isLoading: isLoadingSlots,
     isError: isErrorSlots,
   } = useAvailableSchedule(selectedDate || null);
 
-  // Reset state ketika modal ditutup
+  // Reset ketika modal ditutup
   useEffect(() => {
     if (!isOpen) {
-      setSelectedDate("");
+      setSelectedDate('');
       setSelectedSessionId(null);
     }
   }, [isOpen]);
@@ -167,8 +211,6 @@ const RescheduleModal = ({
     }
   };
 
-  // Filter slot yang memiliki sesi tersedia (tidak dibooking)
-  // Dan durasinya cukup (logika sederhana, bisa disesuaikan)
   const availableSessions =
     timeSlots?.flatMap((slot) =>
       slot.sessions
@@ -177,148 +219,183 @@ const RescheduleModal = ({
           ...session,
           startTime: slot.startTime,
           endTime: slot.endTime,
-        }))
+        })),
     ) || [];
 
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-gray-800">
-            Jadwalkan Ulang Reservasi
-          </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm"
+          onClick={onClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div
+            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0, y: 18, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 18, scale: 0.96 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            className="mx-4 flex w-full max-w-lg max-h-[90vh] flex-col overflow-hidden rounded-3xl bg-white/95 shadow-xl shadow-sky-100/80 ring-1 ring-slate-100"
           >
-            <X size={24} />
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          {/* Pilih Tanggal */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Pilih Tanggal Baru
-            </label>
-            <input
-              type="date"
-              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              value={selectedDate}
-              min={new Date().toISOString().split("T")[0]}
-              onChange={(e) => {
-                setSelectedDate(e.target.value);
-                setSelectedSessionId(null); // Reset sesi jika tanggal berubah
-              }}
-            />
-          </div>
-
-          {/* Daftar Sesi */}
-          {selectedDate && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Pilih Sesi Tersedia
-              </label>
-
-              {isLoadingSlots ? (
-                <div className="flex justify-center p-4">
-                  <Loader2 className="animate-spin h-6 w-6 text-blue-500" />
+            <div className="border-b border-slate-100 bg-gradient-to-r from-sky-500 to-sky-600 px  -5 px-5 py-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-sky-100">
+                    Jadwalkan Ulang
+                  </p>
+                  <h3 className="text-sm font-semibold sm:text-base">
+                    Atur ulang jadwal kunjungan Anda
+                  </h3>
+                  <p className="mt-0.5 text-[11px] text-sky-100/80">
+                    Pilih tanggal dan sesi baru yang masih tersedia.
+                  </p>
                 </div>
-              ) : isErrorSlots ? (
-                <p className="text-red-500 text-sm">Gagal memuat jadwal.</p>
-              ) : availableSessions.length === 0 ? (
-                <p className="text-gray-500 text-sm italic">
-                  Tidak ada sesi tersedia pada tanggal ini.
+                <button
+                  onClick={onClose}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-sky-50 hover:bg-white/20"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 space-y-4 overflow-y-auto px-5 pb-4 pt-4">
+              {/* Tanggal */}
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  Pilih tanggal baru
+                </label>
+                <input
+                  type="date"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
+                  value={selectedDate}
+                  min={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => {
+                    setSelectedDate(e.target.value);
+                    setSelectedSessionId(null);
+                  }}
+                />
+                <p className="mt-1 text-[11px] text-slate-400">
+                  Pilih tanggal minimal hari ini dan seterusnya.
                 </p>
-              ) : (
-                <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto border rounded-md p-2">
-                  {availableSessions.map((session) => (
-                    <button
-                      key={session.id}
-                      onClick={() => setSelectedSessionId(session.id)}
-                      className={`flex items-center justify-between p-3 rounded-md border transition-all ${
-                        selectedSessionId === session.id
-                          ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm"
-                          : "border-gray-200 hover:bg-gray-50 text-gray-700"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Clock size={16} />
-                        <span className="font-medium">
-                          {new Date(session.startTime).toLocaleTimeString(
-                            "id-ID",
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              timeZone: "Asia/Jakarta",
-                            }
-                          )}
-                        </span>
-                      </div>
-                      <div className="text-sm text-gray-500 flex items-center gap-1">
-                        <User size={14} />
-                        {session.staff.name}
-                      </div>
-                    </button>
-                  ))}
+              </div>
+
+              {/* Sesi */}
+              {selectedDate && (
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    Sesi tersedia
+                  </label>
+
+                  {isLoadingSlots ? (
+                    <div className="flex justify-center py-6">
+                      <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
+                    </div>
+                  ) : isErrorSlots ? (
+                    <p className="text-xs text-red-600">
+                      Gagal memuat jadwal untuk tanggal ini.
+                    </p>
+                  ) : availableSessions.length === 0 ? (
+                    <p className="text-xs italic text-slate-500">
+                      Tidak ada sesi tersedia pada tanggal ini.
+                    </p>
+                  ) : (
+                    <div className="max-h-60 space-y-2 overflow-y-auto rounded-2xl border border-slate-100 bg-slate-50/60 p-2">
+                      {availableSessions.map((session) => (
+                        <button
+                          key={session.id}
+                          type="button"
+                          onClick={() => setSelectedSessionId(session.id)}
+                          className={`flex w-full items-center justify-between rounded-2xl border px-3 py-2 text-left text-xs shadow-sm transition-all ${
+                            selectedSessionId === session.id
+                              ? 'border-sky-500 bg-white text-sky-800 shadow-md'
+                              : 'border-transparent bg-white/80 text-slate-700 hover:border-sky-200 hover:bg-white'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-3.5 w-3.5 text-sky-500" />
+                            <span className="font-semibold">
+                              {new Date(session.startTime).toLocaleTimeString(
+                                'id-ID',
+                                {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  timeZone: 'Asia/Jakarta',
+                                },
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1 text-[11px] text-slate-500">
+                            <User className="h-3.5 w-3.5" />
+                            <span>{session.staff.name}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
+
+              <div className="mt-1 rounded-2xl bg-amber-50/80 p-3 text-[11px] text-amber-800 ring-1 ring-amber-100">
+                <p className="flex items-center gap-1 font-semibold">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  Perhatian
+                </p>
+                <ul className="mt-1 list-inside list-disc space-y-1">
+                  <li>
+                    Perubahan jadwal hanya dapat dilakukan maksimal{' '}
+                    <span className="font-semibold">24 jam</span> sebelum waktu
+                    reservasi.
+                  </li>
+                  <li>
+                    Maksimal perubahan jadwal adalah{' '}
+                    <span className="font-semibold">2 kali</span>.
+                  </li>
+                </ul>
+              </div>
             </div>
-          )}
 
-          <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 text-xs text-yellow-800 mt-4">
-            <p className="font-semibold flex items-center gap-1">
-              <AlertTriangle size={14} /> Perhatian:
-            </p>
-            <ul className="list-disc list-inside mt-1 space-y-1">
-              <li>
-                Perubahan jadwal hanya dapat dilakukan maksimal 24 jam sebelum
-                waktu reservasi.
-              </li>
-              <li>Maksimal perubahan jadwal adalah 2 kali.</li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
-            disabled={isSubmitting}
-          >
-            Batal
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed flex items-center"
-            disabled={isSubmitting || !selectedSessionId}
-          >
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Konfirmasi Perubahan
-          </button>
-        </div>
-      </div>
-    </div>
+            <div className="flex items-center justify-end gap-2 border-t border-slate-100 px-5 py-3">
+              <button
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="rounded-full px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting || !selectedSessionId}
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-sky-500 to-sky-600 px-4 py-2 text-xs font-semibold text-white shadow-md shadow-sky-200 hover:from-sky-600 hover:to-sky-700 disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-400 disabled:shadow-none"
+              >
+                {isSubmitting && (
+                  <Loader2 className="h-4 w-4 animate-spin text-white" />
+                )}
+                Konfirmasi Perubahan
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
-// --- HALAMAN UTAMA ---
+/* -------------------------------------------------------------------------- */
+/*                           HALAMAN DETAIL RESERVASI                         */
+/* -------------------------------------------------------------------------- */
+
 const ReservationDetailPage = () => {
   const { reservationId } = useParams<{ reservationId: string }>();
   const navigate = useNavigate();
 
-  // State Modal
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [, setRescheduleError] = useState<string | null>(null);
 
-  // Hooks Data
   const {
     data: reservation,
     isLoading: isLoadingReservation,
@@ -333,7 +410,6 @@ const ReservationDetailPage = () => {
     error: paymentError,
   } = usePaymentDetails(reservationId || null);
 
-  // Hooks Mutasi
   const { mutate: submitRating, isPending: isSubmittingRating } =
     useCreateOnlineRating();
 
@@ -343,19 +419,17 @@ const ReservationDetailPage = () => {
   const isLoading = isLoadingReservation || isLoadingPayment;
   const isError = isErrorReservation || isErrorPayment;
 
-  // Handler Rating
   const handleRatingSubmit = (rating: number, comment: string) => {
     if (!reservationId) return;
     submitRating(
       { reservationId, rating, comment },
       {
         onSuccess: () => setIsRatingModalOpen(false),
-        onError: (err) => console.error("Gagal mengirim rating:", err),
-      }
+        onError: (err) => console.error('Gagal mengirim rating:', err),
+      },
     );
   };
 
-  // Handler Reschedule
   const handleRescheduleSubmit = (newSessionId: string) => {
     if (!reservationId) return;
     setRescheduleError(null);
@@ -365,134 +439,160 @@ const ReservationDetailPage = () => {
       {
         onSuccess: () => {
           setIsRescheduleModalOpen(false);
-          alert("Jadwal berhasil diubah!");
+          alert('Jadwal berhasil diubah!');
         },
         onError: (err: unknown) => {
-          console.error("Gagal reschedule:", err);
-          // Ekstrak pesan error dari API
+          console.error('Gagal reschedule:', err);
           const errorMessage =
-            typeof err === "object" &&
+            typeof err === 'object' &&
             err !== null &&
-            "response" in err &&
+            'response' in err &&
             (err as any).response?.data?.message
               ? (err as any).response.data.message
-              : "Gagal mengubah jadwal. Silakan coba lagi.";
+              : 'Gagal mengubah jadwal. Silakan coba lagi.';
           setRescheduleError(errorMessage);
-          // Tutup modal setelah alert (opsional, bisa biarkan terbuka untuk retry)
           alert(errorMessage);
         },
-      }
+      },
     );
   };
 
   const reservationStatusInfo: Record<
-    Reservation["status"],
-    { text: string; color: string; borderColor: string }
+    Reservation['status'],
+    { text: string; color: string; borderColor: string; chipBg: string }
   > = {
     PENDING: {
-      text: "Menunggu Konfirmasi",
-      color: "bg-yellow-100 text-yellow-800",
-      borderColor: "border-yellow-400",
+      text: 'Menunggu Konfirmasi',
+      color: 'text-amber-800',
+      borderColor: 'border-amber-300',
+      chipBg: 'bg-amber-50',
     },
     CONFIRMED: {
-      text: "Terkonfirmasi",
-      color: "bg-blue-100 text-blue-800",
-      borderColor: "border-blue-400",
+      text: 'Terkonfirmasi',
+      color: 'text-sky-800',
+      borderColor: 'border-sky-300',
+      chipBg: 'bg-sky-50',
     },
     IN_PROGRESS: {
-      text: "Sedang Berlangsung",
-      color: "bg-indigo-100 text-indigo-800",
-      borderColor: "border-indigo-400",
+      text: 'Sedang Berlangsung',
+      color: 'text-indigo-800',
+      borderColor: 'border-indigo-300',
+      chipBg: 'bg-indigo-50',
     },
     COMPLETED: {
-      text: "Selesai",
-      color: "bg-green-100 text-green-800",
-      borderColor: "border-green-400",
+      text: 'Selesai',
+      color: 'text-emerald-800',
+      borderColor: 'border-emerald-300',
+      chipBg: 'bg-emerald-50',
     },
     CANCELLED: {
-      text: "Dibatalkan",
-      color: "bg-red-100 text-red-800",
-      borderColor: "border-red-400",
+      text: 'Dibatalkan',
+      color: 'text-red-800',
+      borderColor: 'border-red-300',
+      chipBg: 'bg-red-50',
     },
     EXPIRED: {
-      text: "Kadaluwarsa",
-      color: "bg-gray-100 text-gray-800",
-      borderColor: "border-gray-400",
+      text: 'Kadaluwarsa',
+      color: 'text-slate-700',
+      borderColor: 'border-slate-300',
+      chipBg: 'bg-slate-50',
     },
   };
 
   const paymentStatusInfo: Record<
-    Payment["status"],
+    Payment['status'],
     { text: string; color: string }
   > = {
-    PENDING: { text: "Menunggu Pembayaran", color: "text-yellow-600" },
-    PAID: { text: "Sudah Dibayar", color: "text-green-600" },
-    FAILED: { text: "Gagal", color: "text-red-600" },
-    EXPIRED: { text: "Kadaluwarsa", color: "text-gray-600" },
-    REFUNDED: { text: "Dikembalikan", color: "text-indigo-600" },
+    PENDING: { text: 'Menunggu Pembayaran', color: 'text-amber-600' },
+    PAID: { text: 'Sudah Dibayar', color: 'text-emerald-600' },
+    FAILED: { text: 'Gagal', color: 'text-red-600' },
+    EXPIRED: { text: 'Kadaluwarsa', color: 'text-slate-600' },
+    REFUNDED: { text: 'Dikembalikan', color: 'text-indigo-600' },
   };
 
-  // --- RENDER ERROR & LOADING ---
-  if (!reservationId)
-    return (
-      <div className="min-h-screen bg-gray-50 p-8 flex justify-center items-center text-red-500">
-        ID Reservasi tidak ditemukan.
-      </div>
-    );
-
-  if (isLoading)
-    return (
-      <div className="min-h-screen bg-gray-50 p-8 flex justify-center items-center">
-        <Loader2 className="h-12 w-12 animate-spin text-blue-600 mr-3" />
-        Memuat data...
-      </div>
-    );
-
-  if (isError || !reservation)
-    return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 text-red-700">
-          Gagal memuat data.{" "}
-          {reservationError?.message || paymentError?.message}
-          <button
-            onClick={() => navigate(-1)}
-            className="block mt-2 underline font-bold"
-          >
-            Kembali
-          </button>
-        </div>
-      </div>
-    );
-
-  const currentReservationStatus = reservationStatusInfo[reservation.status];
-  const currentPaymentStatus = paymentDetails?.payment?.status
-    ? paymentStatusInfo[paymentDetails.payment.status]
-    : null;
-
   const formatDateTime = (isoString: string | null | undefined) => {
-    if (!isoString) return "N/A";
-    return new Date(isoString).toLocaleString("id-ID", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+    if (!isoString) return 'N/A';
+    return new Date(isoString).toLocaleString('id-ID', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
   const formatCurrency = (amount: number | null | undefined) => {
-    if (amount == null) return "Rp. N/A";
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
+    if (amount == null) return 'Rp N/A';
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
       minimumFractionDigits: 0,
     }).format(amount);
   };
 
   const canReschedule =
-    ["PENDING", "CONFIRMED"].includes(reservation.status) &&
-    reservation.rescheduleCount < 2; // Validasi di frontend (juga divalidasi di backend)
+    ['PENDING', 'CONFIRMED'].includes(reservation?.status ?? '') &&
+    (reservation?.rescheduleCount ?? 0) < 2;
+
+  /* ----------------------------- LOADING / ERROR ---------------------------- */
+
+  if (!reservationId) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-sky-50 via-white to-sky-50 px-4">
+        <div className="rounded-2xl bg-white/95 p-6 text-sm text-red-600 shadow-md shadow-red-100/70 ring-1 ring-red-100">
+          ID Reservasi tidak ditemukan.
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-sky-50 via-white to-sky-50">
+        <div className="flex flex-col items-center">
+          <Loader2 className="h-10 w-10 animate-spin text-sky-500" />
+          <p className="mt-3 text-sm font-medium text-slate-600">
+            Memuat detail reservasi Anda...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !reservation) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-rose-50 via-white to-sky-50 px-4 py-8">
+        <div className="mx-auto max-w-xl rounded-3xl bg-white/95 p-6 shadow-xl shadow-red-100/70 ring-1 ring-red-100">
+          <div className="mb-3 flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-50">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+            </div>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Gagal memuat data reservasi
+            </h2>
+          </div>
+          <p className="text-sm text-red-600">
+            {reservationError?.message ||
+              paymentError?.message ||
+              '' ||
+              'Terjadi kesalahan saat mengambil data.'}
+          </p>
+          <button
+            onClick={() => navigate(-1)}
+            className="mt-4 inline-flex items-center rounded-full bg-sky-500 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-sky-600"
+          >
+            Kembali ke halaman sebelumnya
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const currentReservationStatus = reservationStatusInfo[reservation.status];
+  const currentPaymentStatus = paymentDetails?.payment?.status
+    ? paymentStatusInfo[paymentDetails.payment.status]
+    : null;
 
   return (
     <>
@@ -511,183 +611,300 @@ const ReservationDetailPage = () => {
         currentServiceDuration={reservation.service?.duration || 60}
       />
 
-      <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Detail Reservasi</h1>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-sky-50 px-4 pb-10 pt-6 sm:px-6 lg:px-8"
+      >
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 pb-4">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-sky-600">
+              Detail Reservasi
+            </p>
+            <h1 className="mt-1 text-2xl font-semibold leading-tight text-slate-900 sm:text-3xl">
+              Ringkasan kunjungan spa Anda
+            </h1>
+            <p className="mt-1 text-xs text-slate-500">
+              Cek informasi jadwal, status pembayaran, dan ulasan untuk sesi
+              ini.
+            </p>
+          </div>
           <button
             onClick={() => navigate(-1)}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+            className="inline-flex items-center rounded-full bg-white/90 px-4 py-2 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-100 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md"
           >
             Kembali
           </button>
         </div>
 
-        {/* Ringkasan Reservasi */}
-        <div
-          className={`rounded-xl shadow-lg bg-white p-6 mb-8 border-l-4 ${currentReservationStatus.borderColor}`}
-        >
-          <div className="flex justify-between items-start mb-4 flex-wrap gap-2">
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-800">
-                {reservation.service?.name || "Layanan Tidak Diketahui"}
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">ID: {reservation.id}</p>
-            </div>
-            <div className="flex flex-col items-end gap-2">
-              <span
-                className={`px-3 py-1 rounded-full text-sm font-semibold ${currentReservationStatus.color}`}
-              >
-                {currentReservationStatus.text}
-              </span>
-              {canReschedule && (
-                <button
-                  onClick={() => setIsRescheduleModalOpen(true)}
-                  className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
-                >
-                  <Edit size={16} /> Jadwalkan Ulang
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
-            <p>
-              <strong>Nama Bayi:</strong> {reservation.babyName} (
-              {reservation.babyAge} bln)
-            </p>
-            <p>
-              <strong>Nama Orang Tua:</strong>{" "}
-              {reservation.parentNames || reservation.customer?.name || "N/A"}
-            </p>
-            <p>
-              <strong>Terapis:</strong> {reservation.staff?.name || "N/A"}
-            </p>
-            <p>
-              <strong>Total Biaya:</strong>{" "}
-              {formatCurrency(reservation.totalPrice)}
-            </p>
-            <p>
-              <strong>Riwayat Reschedule:</strong> {reservation.rescheduleCount}{" "}
-              kali
-            </p>
-          </div>
-        </div>
-
-        {/* Detail Sesi */}
-        <div className="rounded-xl shadow-lg bg-white p-6 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Clock className="text-blue-500" /> Detail Jadwal
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-700">
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Tanggal & Waktu</p>
-              <p className="text-lg font-medium">
-                {formatDateTime(reservation.session?.timeSlot?.startTime)}
-              </p>
-              <p className="text-sm text-gray-600 mt-1">
-                sampai {formatDateTime(reservation.session?.timeSlot?.endTime)}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Durasi Layanan</p>
-              <p className="text-lg font-medium">
-                {reservation.service?.duration || "-"} menit
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Seksi Ulasan (Jika Completed) */}
-        {reservation.status === "COMPLETED" && (
-          <div className="rounded-xl shadow-lg bg-white p-6 mb-8">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-              Ulasan Anda
-            </h2>
-            {reservation.rating ? (
-              <div>
-                <div className="flex items-center mb-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                      key={star}
-                      size={24}
-                      className={
-                        reservation.rating!.rating >= star
-                          ? "text-amber-500 fill-amber-500"
-                          : "text-gray-300"
-                      }
-                    />
-                  ))}
-                  <span className="ml-2 text-gray-700 font-bold">
-                    ({reservation.rating.rating} / 5)
-                  </span>
+        <div className="mx-auto flex max-w-5xl flex-col gap-6 lg:flex-row">
+          {/* KOLOM KIRI: Ringkasan + Jadwal + Ulasan */}
+          <div className="flex-1 space-y-6">
+            {/* CARD RINGKASAN */}
+            <motion.div
+              className={`rounded-3xl bg-white/95 p-6 shadow-xl shadow-sky-100/70 ring-1 ${currentReservationStatus.borderColor}`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05, duration: 0.3 }}
+            >
+              <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">
+                    {reservation.service?.name || 'Layanan Tidak Diketahui'}
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-500">
+                    ID Reservasi:{' '}
+                    <span className="font-mono text-[11px]">
+                      {reservation.id}
+                    </span>
+                  </p>
                 </div>
-                <p className="text-gray-600 italic">
-                  "{reservation.rating.comment || "Tidak ada komentar."}"
-                </p>
+                <div className="flex flex-col items-end gap-2">
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold ${currentReservationStatus.chipBg} ${currentReservationStatus.color}`}
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                    {currentReservationStatus.text}
+                  </span>
+
+                  {canReschedule && (
+                    <button
+                      onClick={() => setIsRescheduleModalOpen(true)}
+                      className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-3 py-1 text-[11px] font-medium text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100"
+                    >
+                      <Edit className="h-3.5 w-3.5" />
+                      Jadwalkan ulang
+                    </button>
+                  )}
+                </div>
               </div>
-            ) : (
-              <div className="flex justify-between items-center">
-                <p className="text-gray-600">
-                  Anda belum memberikan ulasan untuk layanan ini.
-                </p>
-                <button
-                  onClick={() => setIsRatingModalOpen(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-md hover:bg-amber-600"
-                >
-                  <Star size={16} /> Beri Ulasan
-                </button>
+
+              <div className="grid gap-4 text-xs text-slate-700 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    Data bayi
+                  </p>
+                  <p>
+                    <span className="font-medium">Nama:</span>{' '}
+                    {reservation.babyName}
+                  </p>
+                  <p>
+                    <span className="font-medium">Usia:</span>{' '}
+                    {reservation.babyAge} bulan
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    Orang tua & terapis
+                  </p>
+                  <p>
+                    <span className="font-medium">Orang tua:</span>{' '}
+                    {reservation.parentNames ||
+                      reservation.customer?.name ||
+                      'N/A'}
+                  </p>
+                  <p>
+                    <span className="font-medium">Terapis:</span>{' '}
+                    {reservation.staff?.name || 'N/A'}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    Harga
+                  </p>
+                  <p className="text-sm font-semibold text-emerald-700">
+                    {formatCurrency(reservation.totalPrice)}
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    Termasuk semua layanan dalam sesi ini.
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    Reschedule
+                  </p>
+                  <p>
+                    Sudah diubah{' '}
+                    <span className="font-semibold">
+                      {reservation.rescheduleCount}x
+                    </span>
+                  </p>
+                </div>
               </div>
+            </motion.div>
+
+            {/* CARD JADWAL */}
+            <motion.div
+              className="rounded-3xl bg-white/95 p-6 shadow-xl shadow-slate-100/70 ring-1 ring-slate-100"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08, duration: 0.3 }}
+            >
+              <div className="mb-4 flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-sky-50 text-sky-600">
+                  <Clock className="h-4 w-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-semibold text-slate-900">
+                    Detail Jadwal
+                  </h2>
+                  <p className="text-[11px] text-slate-500">
+                    Periksa waktu mulai dan selesai sesi spa.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-4 text-xs text-slate-700 sm:grid-cols-2">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    Tanggal & waktu
+                  </p>
+                  <p className="mt-1 text-sm font-medium">
+                    {formatDateTime(reservation.session?.timeSlot?.startTime)}
+                  </p>
+                  <p className="mt-1 text-[11px] text-slate-500">
+                    Berakhir pada{' '}
+                    {formatDateTime(reservation.session?.timeSlot?.endTime)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    Durasi layanan
+                  </p>
+                  <p className="mt-1 text-sm font-medium">
+                    {reservation.service?.duration || '-'} menit
+                  </p>
+                  <p className="mt-1 text-[11px] text-slate-500">
+                    Estimasi bisa sedikit berbeda tergantung kondisi bayi.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* ULASAN */}
+            {reservation.status === 'COMPLETED' && (
+              <motion.div
+                className="rounded-3xl bg-white/95 p-6 shadow-xl shadow-amber-50/80 ring-1 ring-amber-100"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.12, duration: 0.3 }}
+              >
+                <h2 className="mb-3 text-sm font-semibold text-slate-900">
+                  Ulasan Anda
+                </h2>
+                {reservation.rating ? (
+                  <div>
+                    <div className="mb-2 flex items-center">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          size={22}
+                          className={
+                            reservation.rating!.rating >= star
+                              ? 'text-amber-500 fill-amber-500'
+                              : 'text-slate-200'
+                          }
+                        />
+                      ))}
+                      <span className="ml-2 text-xs font-semibold text-slate-700">
+                        ({reservation.rating.rating} / 5)
+                      </span>
+                    </div>
+                    <p className="text-xs italic text-slate-600">
+                      “{reservation.rating.comment || 'Tidak ada komentar.'}”
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xs text-slate-600">
+                      Anda belum memberikan ulasan untuk layanan ini.
+                    </p>
+                    <button
+                      onClick={() => setIsRatingModalOpen(true)}
+                      className="inline-flex items-center gap-1 rounded-full bg-amber-500 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-amber-600"
+                    >
+                      <Star className="h-3.5 w-3.5" />
+                      Beri ulasan
+                    </button>
+                  </div>
+                )}
+              </motion.div>
             )}
           </div>
-        )}
 
-        {/* Detail Pembayaran */}
-        <div className="rounded-xl shadow-lg bg-white p-6">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Wallet className="text-green-600" /> Detail Pembayaran
-          </h2>
-          {paymentDetails?.payment ? (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
-                <span className="font-medium text-gray-600">Status</span>
-                <span
-                  className={`font-bold ${currentPaymentStatus?.color || ""}`}
-                >
-                  {currentPaymentStatus?.text || "N/A"}
-                </span>
+          {/* KOLOM KANAN: Pembayaran */}
+          <motion.div
+            className="w-full max-w-md space-y-4 lg:w-80"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.3 }}
+          >
+            <div className="rounded-3xl bg-white/95 p-6 shadow-xl shadow-emerald-50/80 ring-1 ring-slate-100">
+              <div className="mb-3 flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                  <Wallet className="h-4 w-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-semibold text-slate-900">
+                    Status Pembayaran
+                  </h2>
+                  <p className="text-[11px] text-slate-500">
+                    Detail transaksi untuk reservasi ini.
+                  </p>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
-                <p>
-                  <strong>Metode:</strong>{" "}
-                  {paymentDetails.payment.paymentMethod}
+              {paymentDetails?.payment ? (
+                <div className="space-y-4 text-xs text-slate-700">
+                  <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-3 py-2">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                      Status
+                    </span>
+                    <span
+                      className={`text-xs font-semibold ${
+                        currentPaymentStatus?.color || ''
+                      }`}
+                    >
+                      {currentPaymentStatus?.text || 'N/A'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p>
+                      <span className="font-medium">Metode:</span>{' '}
+                      {paymentDetails.payment.paymentMethod}
+                    </p>
+                    <p>
+                      <span className="font-medium">Batas waktu bayar:</span>{' '}
+                      {formatDateTime(paymentDetails.payment.expiryDate)}
+                    </p>
+                  </div>
+
+                  {paymentDetails.payment.status === 'PENDING' &&
+                    paymentDetails.payment.paymentUrl && (
+                      <div className="pt-2">
+                        <a
+                          href={paymentDetails.payment.paymentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-md shadow-emerald-200 hover:from-emerald-600 hover:to-emerald-700"
+                        >
+                          Lanjutkan Pembayaran
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </a>
+                      </div>
+                    )}
+                </div>
+              ) : (
+                <p className="text-xs italic text-slate-500">
+                  Data pembayaran tidak tersedia.
                 </p>
-                <p>
-                  <strong>Batas Waktu:</strong>{" "}
-                  {formatDateTime(paymentDetails.payment.expiryDate)}
-                </p>
-                {paymentDetails.payment.status === "PENDING" &&
-                  paymentDetails.payment.paymentUrl && (
-                    <div className="col-span-1 md:col-span-2 mt-2">
-                      <a
-                        href={paymentDetails.payment.paymentUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
-                      >
-                        Lanjutkan Pembayaran <ArrowRight size={16} />
-                      </a>
-                    </div>
-                  )}
-              </div>
+              )}
             </div>
-          ) : (
-            <p className="text-gray-500 italic">
-              Data pembayaran tidak tersedia.
-            </p>
-          )}
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     </>
   );
 };
