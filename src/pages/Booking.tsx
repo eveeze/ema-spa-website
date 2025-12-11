@@ -1,15 +1,15 @@
 // src/pages/BookingPage.tsx
-import { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-import apiClient from "../api/apiClient";
+import { useState, useEffect, useMemo } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import apiClient from '../api/apiClient';
 import {
   Service,
   Session,
   PaymentMethod,
   ReservationPayload,
   ApiResponse,
-} from "../types";
-import { useAuth } from "../hooks/useAuth";
+} from '../types';
+import { useAuth } from '../hooks/useAuth';
 import {
   Calendar,
   Baby,
@@ -19,13 +19,14 @@ import {
   Clock,
   User,
   CreditCard,
-} from "lucide-react";
+} from 'lucide-react';
+import { motion } from 'framer-motion';
 
 // =======================
 // Helper: format umur (bulan → label)
 // =======================
 const formatMonthLabel = (months: number | null | undefined) => {
-  if (months == null) return "";
+  if (months == null) return '';
   if (months < 12) return `${months} bln`;
 
   const years = Math.floor(months / 12);
@@ -37,7 +38,7 @@ const formatMonthLabel = (months: number | null | undefined) => {
 
 const formatAgeRange = (
   min: number | null | undefined,
-  max: number | null | undefined
+  max: number | null | undefined,
 ) => {
   const minLabel = formatMonthLabel(min);
   const maxLabel = formatMonthLabel(max);
@@ -56,9 +57,9 @@ const BookingPage = () => {
 
   const queryParams = useMemo(
     () => new URLSearchParams(location.search),
-    [location.search]
+    [location.search],
   );
-  const priceTierIdFromUrl = queryParams.get("priceTierId");
+  const priceTierIdFromUrl = queryParams.get('priceTierId');
 
   const [service, setService] = useState<Service | null>(null);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
@@ -68,9 +69,9 @@ const BookingPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
-    null
+    null,
   );
-  const [babyInfo, setBabyInfo] = useState({ name: "", age: "" });
+  const [babyInfo, setBabyInfo] = useState({ name: '', age: '' });
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
   const [selectedPriceTierId] = useState<string | null>(priceTierIdFromUrl);
 
@@ -105,7 +106,7 @@ const BookingPage = () => {
     const fetchInitialData = async () => {
       try {
         const serviceRes = await apiClient.get<ApiResponse<Service>>(
-          `/service/${serviceId}`
+          `/service/${serviceId}`,
         );
         setService(serviceRes.data.data);
 
@@ -115,17 +116,17 @@ const BookingPage = () => {
 
         const scheduleRes = await apiClient.get<
           ApiResponse<OperatingSchedule[]>
-        >("/operating-schedule?isHoliday=false");
+        >('/operating-schedule?isHoliday=false');
 
         if (Array.isArray(scheduleRes.data.data)) {
           const allDates = scheduleRes.data.data.map(
-            (s: OperatingSchedule) => s.date.split("T")[0]
+            (s: OperatingSchedule) => s.date.split('T')[0],
           );
           const futureDates = filterFutureDates(allDates);
           setAvailableDates(futureDates);
         }
       } catch (err) {
-        setError("Gagal memuat detail layanan atau jadwal.");
+        setError('Gagal memuat detail layanan atau jadwal.');
         console.error(err);
       } finally {
         setLoading((prev) => ({ ...prev, service: false, dates: false }));
@@ -150,13 +151,13 @@ const BookingPage = () => {
           `/session/available`,
           {
             params: { date: selectedDate, duration: service.duration },
-          }
+          },
         );
         if (Array.isArray(response.data.data)) {
           setAvailableSessions(response.data.data);
         }
       } catch (err) {
-        console.error("Gagal memuat sesi:", err);
+        console.error('Gagal memuat sesi:', err);
       } finally {
         setLoading((prev) => ({ ...prev, sessions: false }));
       }
@@ -174,13 +175,13 @@ const BookingPage = () => {
     const fetchPaymentMethods = async () => {
       try {
         const response = await apiClient.get<ApiResponse<PaymentMethod[]>>(
-          "/reservations/payment-methods"
+          '/reservations/payment-methods',
         );
         if (Array.isArray(response.data.data)) {
           setPaymentMethods(response.data.data);
         }
       } catch (err) {
-        console.error("Gagal memuat metode pembayaran:", err);
+        console.error('Gagal memuat metode pembayaran:', err);
       }
     };
 
@@ -192,7 +193,7 @@ const BookingPage = () => {
   // =======================
   const selectedSession = useMemo(
     () => availableSessions.find((s) => s.id === selectedSessionId),
-    [availableSessions, selectedSessionId]
+    [availableSessions, selectedSessionId],
   );
 
   const selectedTier = useMemo(() => {
@@ -211,16 +212,15 @@ const BookingPage = () => {
     return service.price ?? 0;
   }, [service, selectedPriceTierId]);
 
-  // Range umur yang berlaku (tier > service)
   const { allowedMin, allowedMax } = useMemo(() => {
     if (selectedTier) {
       return {
         allowedMin:
-          typeof selectedTier.minBabyAge === "number"
+          typeof selectedTier.minBabyAge === 'number'
             ? selectedTier.minBabyAge
             : null,
         allowedMax:
-          typeof selectedTier.maxBabyAge === "number"
+          typeof selectedTier.maxBabyAge === 'number'
             ? selectedTier.maxBabyAge
             : null,
       };
@@ -228,9 +228,9 @@ const BookingPage = () => {
     if (service) {
       return {
         allowedMin:
-          typeof service.minBabyAge === "number" ? service.minBabyAge : null,
+          typeof service.minBabyAge === 'number' ? service.minBabyAge : null,
         allowedMax:
-          typeof service.maxBabyAge === "number" ? service.maxBabyAge : null,
+          typeof service.maxBabyAge === 'number' ? service.maxBabyAge : null,
       };
     }
     return { allowedMin: null, allowedMax: null };
@@ -238,7 +238,7 @@ const BookingPage = () => {
 
   const ageRangeText = useMemo(
     () => formatAgeRange(allowedMin, allowedMax),
-    [allowedMin, allowedMax]
+    [allowedMin, allowedMax],
   );
 
   const isAgeValid = useMemo(() => {
@@ -263,19 +263,19 @@ const BookingPage = () => {
       !babyInfo.age ||
       !selectedPayment
     ) {
-      setError("Harap lengkapi semua informasi sebelum melanjutkan.");
+      setError('Harap lengkapi semua informasi sebelum melanjutkan.');
       return;
     }
 
     if (service?.hasPriceTiers && !selectedPriceTierId) {
       setError(
-        "Terjadi kesalahan, tingkatan harga tidak terpilih. Silakan kembali ke halaman detail layanan."
+        'Terjadi kesalahan, tingkatan harga tidak terpilih. Silakan kembali ke halaman detail layanan.',
       );
       return;
     }
 
     if (!isAgeValid) {
-      const rangeText = ageRangeText || "rentang usia yang diperbolehkan";
+      const rangeText = ageRangeText || 'rentang usia yang diperbolehkan';
       setError(`Usia bayi harus berada dalam ${rangeText}.`);
       return;
     }
@@ -293,30 +293,30 @@ const BookingPage = () => {
     };
 
     try {
-      const response = await apiClient.post("/reservations", payload);
+      const response = await apiClient.post('/reservations', payload);
       const paymentUrl = response.data?.data?.payment?.tripayPaymentUrl;
 
       if (paymentUrl) {
         window.location.href = paymentUrl;
       } else {
         console.warn(
-          "Payment URL not found in response, navigating to dashboard."
+          'Payment URL not found in response, navigating to dashboard.',
         );
         setError(
-          "Gagal mengalihkan ke halaman pembayaran. Silakan cek status reservasi Anda di dashboard."
+          'Gagal mengalihkan ke halaman pembayaran. Silakan cek status reservasi Anda di dashboard.',
         );
-        navigate("/dashboard/reservations?status=pending");
+        navigate('/dashboard/reservations?status=pending');
       }
     } catch (err: unknown) {
-      console.error("Reservation failed. Response data:", err);
+      console.error('Reservation failed. Response data:', err);
 
-      let errorMessage = "Terjadi kesalahan saat membuat reservasi.";
+      let errorMessage = 'Terjadi kesalahan saat membuat reservasi.';
 
       if (
-        typeof err === "object" &&
+        typeof err === 'object' &&
         err !== null &&
-        "response" in err &&
-        typeof (err as Record<string, unknown>).response === "object"
+        'response' in err &&
+        typeof (err as Record<string, unknown>).response === 'object'
       ) {
         const response = (err as { response?: { data?: { message?: string } } })
           .response;
@@ -375,31 +375,36 @@ const BookingPage = () => {
   }
 
   // =======================
-  // Step config + progress
+  // Step config
   // =======================
   const stepConfig = [
-    { icon: Calendar, title: "Pilih Jadwal", color: "bg-sky-500" },
-    { icon: Baby, title: "Data Bayi", color: "bg-emerald-500" },
+    { icon: Calendar, title: 'Pilih Jadwal', color: 'bg-sky-500' },
+    { icon: Baby, title: 'Data Bayi', color: 'bg-emerald-500' },
     {
       icon: CreditCard,
-      title: "Pembayaran",
-      color: "bg-purple-500",
+      title: 'Pembayaran',
+      color: 'bg-purple-500',
     },
   ];
-
-  const progressRatio =
-    stepConfig.length > 1
-      ? (currentStep - 1) / (stepConfig.length - 1)
-      : 1;
 
   // =======================
   // RENDER
   // =======================
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-sky-50">
-      <div className="mx-auto max-w-6xl px-4 pb-16 pt-6 sm:px-6 lg:px-8 lg:pt-10">
+      <motion.div
+        className="mx-auto max-w-6xl px-4 pb-16 pt-6 sm:px-6 lg:px-8 lg:pt-10"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: 'easeOut' }}
+      >
         {/* HEADER CARD */}
-        <div className="mb-6 rounded-3xl bg-white/90 p-4 shadow-md ring-1 ring-sky-100/80 sm:p-6 lg:p-8">
+        <motion.div
+          className="mb-6 rounded-3xl bg-white/90 p-4 shadow-md ring-1 ring-sky-100/80 sm:p-6 lg:p-8"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05, duration: 0.4, ease: 'easeOut' }}
+        >
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             {/* Left: title & breadcrumb */}
             <div className="space-y-4">
@@ -426,7 +431,7 @@ const BookingPage = () => {
                 </h1>
                 {service && (
                   <p className="max-w-2xl text-sm leading-relaxed text-slate-600 md:text-[15px]">
-                    Anda sedang melakukan reservasi untuk{" "}
+                    Anda sedang melakukan reservasi untuk{' '}
                     <span className="font-semibold text-sky-700">
                       {service.name}
                     </span>
@@ -439,7 +444,12 @@ const BookingPage = () => {
 
             {/* Right: duration & price badge */}
             {service && (
-              <div className="mt-2 flex w-full max-w-xs flex-col gap-3 rounded-2xl bg-sky-50/70 p-4 text-right shadow-inner ring-1 ring-sky-100/80 lg:mt-0">
+              <motion.div
+                className="mt-2 flex w-full max-w-xs flex-col gap-3 rounded-2xl bg-sky-50/70 p-4 text-right shadow-inner ring-1 ring-sky-100/80 lg:mt-0"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.4, ease: 'easeOut' }}
+              >
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-500">
                   Estimasi Sesi
                 </p>
@@ -453,7 +463,7 @@ const BookingPage = () => {
                     </p>
                     {ageRangeText && (
                       <p className="mt-1 text-[11px] text-slate-500">
-                        Usia bayi:{" "}
+                        Usia bayi:{' '}
                         <span className="font-semibold text-sky-700">
                           {ageRangeText}
                         </span>
@@ -465,65 +475,83 @@ const BookingPage = () => {
                       Harga mulai dari
                     </p>
                     <p className="text-lg font-semibold text-sky-700 md:text-xl">
-                      Rp {finalPrice.toLocaleString("id-ID")}
+                      Rp {finalPrice.toLocaleString('id-ID')}
                     </p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {/* STEPPER */}
-        <div className="mb-8 rounded-3xl bg-white/95 px-4 py-5 shadow-sm ring-1 ring-sky-100/80 md:px-6">
-          <div className="relative">
-            {/* Garis background */}
-            <div className="pointer-events-none absolute left-6 right-6 top-1/2 hidden h-[3px] -translate-y-1/2 rounded-full bg-slate-100 md:block" />
-            {/* Garis progress */}
-            <div
-              className="pointer-events-none absolute left-6 top-1/2 hidden h-[3px] -translate-y-1/2 rounded-full bg-emerald-500 transition-all duration-300 md:block"
-              style={{ width: `${progressRatio * 100}%` }}
-            />
+        <div className="mb-8 rounded-3xl bg-white/95 px-6 py-7 shadow-sm ring-1 ring-sky-100/80">
+          <div className="flex items-center justify-between">
+            {stepConfig.map((step, index) => {
+              const StepIcon = step.icon;
+              const stepNumber = index + 1;
+              const isActive = currentStep === stepNumber;
+              const isCompleted = currentStep > stepNumber;
 
-            <div className="relative flex items-center justify-between gap-4">
-              {stepConfig.map((step, index) => {
-                const StepIcon = step.icon;
-                const stepNumber = index + 1;
-                const isActive = currentStep === stepNumber;
-                const isCompleted = currentStep > stepNumber;
-
-                return (
-                  <div
-                    key={stepNumber}
-                    className="flex flex-1 flex-col items-center gap-2 text-center"
-                  >
-                    <div
-                      className={`flex h-11 w-11 items-center justify-center rounded-full border text-xs transition-all duration-300 md:h-12 md:w-12 ${
-                        isCompleted
-                          ? "border-emerald-500 bg-emerald-500 text-white shadow"
-                          : isActive
-                          ? `${step.color} border-transparent text-white shadow-md shadow-sky-200/70`
-                          : "border-slate-200 bg-slate-50 text-slate-400"
-                      }`}
+              return (
+                <div key={stepNumber} className="flex flex-1 flex-col">
+                  {/* WRAPPER FIX: SET HEIGHT SAMA & CENTER */}
+                  <div className="flex items-center justify-center h-[65px] relative">
+                    {/* ICON */}
+                    <motion.div
+                      className={`flex h-12 w-12 items-center justify-center rounded-full border text-xs 
+                ${
+                  isCompleted
+                    ? 'border-emerald-500 bg-emerald-500 text-white'
+                    : isActive
+                    ? `${step.color} border-transparent text-white`
+                    : 'border-slate-200 bg-slate-50 text-slate-400'
+                }`}
+                      layout
+                      transition={{
+                        type: 'spring',
+                        stiffness: 260,
+                        damping: 22,
+                      }}
                     >
                       <StepIcon className="h-5 w-5" />
-                    </div>
+                    </motion.div>
+
+                    {/* CONNECTION LINE */}
+                    {index < stepConfig.length - 1 && (
+                      <div className="absolute left-[calc(50%+36px)] top-1/2 -translate-y-1/2 w-full pr-5">
+                        <div
+                          className={`h-[2px] rounded-full w-full 
+                    ${
+                      currentStep > stepNumber ? 'bg-sky-400' : 'bg-slate-200'
+                    }`}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* LABEL */}
+                  <div className="mt-2 flex justify-center">
                     <span
-                      className={`text-[11px] font-medium md:text-xs ${
-                        isActive ? "text-slate-900" : "text-slate-500"
-                      }`}
+                      className={`text-[12px] font-medium 
+                ${isActive ? 'text-slate-900' : 'text-slate-500'}`}
                     >
                       {step.title}
                     </span>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
         {/* CONTENT CARD */}
-        <div className="overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-slate-100">
+        <motion.div
+          className="overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-slate-100"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+        >
           {/* Header kecil di dalam card, berubah tiap step */}
           <div className="bg-gradient-to-r from-sky-500 to-sky-600 px-5 py-4 text-white md:px-8">
             <div className="flex items-center">
@@ -540,9 +568,9 @@ const BookingPage = () => {
                   Langkah {currentStep} dari 3
                 </p>
                 <h2 className="text-base font-semibold sm:text-lg">
-                  {currentStep === 1 && "Pilih Tanggal & Waktu"}
-                  {currentStep === 2 && "Lengkapi Data Bayi"}
-                  {currentStep === 3 && "Konfirmasi & Pembayaran"}
+                  {currentStep === 1 && 'Pilih Tanggal & Waktu'}
+                  {currentStep === 2 && 'Lengkapi Data Bayi'}
+                  {currentStep === 3 && 'Konfirmasi & Pembayaran'}
                 </h2>
                 {service?.name && (
                   <p className="mt-0.5 text-xs text-sky-100/80">
@@ -580,30 +608,38 @@ const BookingPage = () => {
                         const isSelected = selectedDate === date;
 
                         return (
-                          <button
+                          <motion.button
                             key={date}
                             type="button"
                             onClick={() => setSelectedDate(date)}
-                            className={`flex flex-col items-center rounded-xl border-2 p-3 text-center text-xs font-medium transition-all duration-200 sm:text-sm ${
+                            className={`flex flex-col items-center rounded-xl border-2 p-3 text-center text-xs font-medium sm:text-sm ${
                               isSelected
-                                ? "border-sky-500 bg-sky-500 text-white shadow-lg"
-                                : "border-slate-200 bg-white text-slate-700 hover:border-sky-400 hover:shadow-md"
+                                ? 'border-sky-500 bg-sky-500 text-white shadow-lg'
+                                : 'border-slate-200 bg-white text-slate-700'
                             }`}
+                            whileHover={{
+                              y: isSelected ? 0 : -3,
+                              boxShadow: isSelected
+                                ? '0 14px 30px rgba(56,189,248,0.35)'
+                                : '0 8px 20px rgba(148,163,184,0.25)',
+                            }}
+                            whileTap={{ scale: 0.97 }}
+                            transition={{ duration: 0.18 }}
                           >
                             <span className="text-[11px] uppercase tracking-wide text-slate-500">
-                              {dateObj.toLocaleDateString("id-ID", {
-                                weekday: "short",
+                              {dateObj.toLocaleDateString('id-ID', {
+                                weekday: 'short',
                               })}
                             </span>
                             <span className="text-lg font-semibold">
                               {dateObj.getDate()}
                             </span>
                             <span className="text-[11px] text-slate-500">
-                              {dateObj.toLocaleDateString("id-ID", {
-                                month: "short",
+                              {dateObj.toLocaleDateString('id-ID', {
+                                month: 'short',
                               })}
                             </span>
-                          </button>
+                          </motion.button>
                         );
                       })}
                     </div>
@@ -631,12 +667,12 @@ const BookingPage = () => {
                 {selectedDate && !loading.sessions && (
                   <div className="rounded-2xl bg-sky-50/80 p-5 md:p-6">
                     <label className="mb-3 block text-sm font-semibold text-slate-800">
-                      🕐 Sesi Tersedia pada{" "}
+                      🕐 Sesi Tersedia pada{' '}
                       <span className="text-sky-700">
-                        {new Date(selectedDate).toLocaleDateString("id-ID", {
-                          weekday: "long",
-                          day: "numeric",
-                          month: "long",
+                        {new Date(selectedDate).toLocaleDateString('id-ID', {
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'long',
                         })}
                       </span>
                     </label>
@@ -644,34 +680,41 @@ const BookingPage = () => {
                     {availableSessions.length > 0 ? (
                       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {availableSessions.map((session) => (
-                          <button
+                          <motion.button
                             key={session.id}
                             type="button"
                             onClick={() => {
                               setSelectedSessionId(session.id);
                               nextStep();
                             }}
-                            className="rounded-2xl border-2 border-transparent bg-white p-4 text-left shadow-sm transition-all duration-200 hover:border-sky-500 hover:shadow-lg"
+                            className="rounded-2xl border-2 border-transparent bg-white p-4 text-left shadow-sm"
+                            whileHover={{
+                              y: -3,
+                              boxShadow: '0 18px 40px rgba(8,47,73,0.20)',
+                              borderColor: 'rgba(56,189,248,1)',
+                            }}
+                            whileTap={{ scale: 0.97 }}
+                            transition={{ duration: 0.18 }}
                           >
                             <div className="mb-2 flex items-center">
                               <Clock className="mr-2 h-4 w-4 text-sky-500" />
                               <span className="text-base font-semibold text-slate-900">
                                 {new Date(
-                                  session.timeSlot.startTime
-                                ).toLocaleTimeString("id-ID", {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
+                                  session.timeSlot.startTime,
+                                ).toLocaleTimeString('id-ID', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
                                 })}
                               </span>
                             </div>
                             <div className="flex items-center text-xs text-slate-600">
                               <User className="mr-1.5 h-3.5 w-3.5 text-slate-400" />
-                              dengan{" "}
+                              dengan{' '}
                               <span className="ml-1 font-medium">
                                 {session.staff.name}
                               </span>
                             </div>
-                          </button>
+                          </motion.button>
                         ))}
                       </div>
                     ) : (
@@ -707,7 +750,7 @@ const BookingPage = () => {
                       👤 Nama Orang Tua
                     </label>
                     <input
-                      value={user?.name || ""}
+                      value={user?.name || ''}
                       readOnly
                       className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-600 shadow-inner"
                     />
@@ -750,7 +793,7 @@ const BookingPage = () => {
                     />
                     {ageRangeText && (
                       <p className="mt-1 text-xs text-slate-500">
-                        Layanan ini direkomendasikan untuk bayi dengan usia{" "}
+                        Layanan ini direkomendasikan untuk bayi dengan usia{' '}
                         <span className="font-medium text-sky-700">
                           {ageRangeText}
                         </span>
@@ -766,14 +809,28 @@ const BookingPage = () => {
                   </div>
                 </div>
 
-                <button
+                <motion.button
                   type="button"
                   onClick={nextStep}
                   disabled={!babyInfo.name || !babyInfo.age || !isAgeValid}
-                  className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:from-emerald-600 hover:to-emerald-700 disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-400"
+                  className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-400"
+                  whileHover={
+                    !(!babyInfo.name || !babyInfo.age || !isAgeValid)
+                      ? {
+                          y: -2,
+                          boxShadow: '0 18px 40px rgba(16,185,129,0.35)',
+                        }
+                      : {}
+                  }
+                  whileTap={
+                    !(!babyInfo.name || !babyInfo.age || !isAgeValid)
+                      ? { scale: 0.97 }
+                      : {}
+                  }
+                  transition={{ duration: 0.18 }}
                 >
                   Lanjutkan ke Pembayaran
-                </button>
+                </motion.button>
               </div>
             )}
 
@@ -786,8 +843,8 @@ const BookingPage = () => {
                     Konfirmasi & Pembayaran
                   </h3>
                   <p className="text-sm text-slate-600">
-                    Periksa kembali detail reservasi dan pilih metode
-                    pembayaran yang Anda inginkan.
+                    Periksa kembali detail reservasi dan pilih metode pembayaran
+                    yang Anda inginkan.
                   </p>
                 </div>
 
@@ -805,13 +862,11 @@ const BookingPage = () => {
                       </div>
                       {service?.hasPriceTiers && selectedPriceTierId && (
                         <div className="flex justify-between">
-                          <span className="text-slate-600">
-                            Kategori usia:
-                          </span>
+                          <span className="text-slate-600">Kategori usia:</span>
                           <span className="font-medium text-slate-900">
                             {
                               service.priceTiers.find(
-                                (t) => t.id === selectedPriceTierId
+                                (t) => t.id === selectedPriceTierId,
                               )?.tierName
                             }
                           </span>
@@ -821,12 +876,12 @@ const BookingPage = () => {
                         <span className="text-slate-600">Tanggal:</span>
                         <span className="font-medium text-slate-900">
                           {new Date(
-                            selectedSession.timeSlot.startTime
-                          ).toLocaleDateString("id-ID", {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
+                            selectedSession.timeSlot.startTime,
+                          ).toLocaleDateString('id-ID', {
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
                           })}
                         </span>
                       </div>
@@ -834,10 +889,10 @@ const BookingPage = () => {
                         <span className="text-slate-600">Waktu:</span>
                         <span className="font-medium text-slate-900">
                           {new Date(
-                            selectedSession.timeSlot.startTime
-                          ).toLocaleTimeString("id-ID", {
-                            hour: "2-digit",
-                            minute: "2-digit",
+                            selectedSession.timeSlot.startTime,
+                          ).toLocaleTimeString('id-ID', {
+                            hour: '2-digit',
+                            minute: '2-digit',
                           })}
                         </span>
                       </div>
@@ -861,7 +916,7 @@ const BookingPage = () => {
                           Total Harga:
                         </span>
                         <span className="text-lg font-bold text-emerald-600">
-                          Rp {finalPrice.toLocaleString("id-ID")}
+                          Rp {finalPrice.toLocaleString('id-ID')}
                         </span>
                       </div>
                     </div>
@@ -875,15 +930,24 @@ const BookingPage = () => {
                   </h4>
                   <div className="grid gap-3 md:grid-cols-2">
                     {paymentMethods.map((method) => (
-                      <button
+                      <motion.button
                         key={method.code}
                         type="button"
                         onClick={() => setSelectedPayment(method.code)}
-                        className={`flex items-center gap-3 rounded-2xl border-2 bg-white p-4 text-left text-sm transition-all duration-200 ${
+                        className={`flex items-center gap-3 rounded-2xl border-2 bg-white p-4 text-left text-sm ${
                           selectedPayment === method.code
-                            ? "border-purple-500 shadow-lg ring-2 ring-purple-200"
-                            : "border-slate-200 hover:border-purple-300 hover:shadow-md"
+                            ? 'border-purple-500 shadow-lg ring-2 ring-purple-200'
+                            : 'border-slate-200'
                         }`}
+                        whileHover={{
+                          y: selectedPayment === method.code ? -1 : -3,
+                          boxShadow:
+                            selectedPayment === method.code
+                              ? '0 18px 40px rgba(126,34,206,0.35)'
+                              : '0 14px 30px rgba(148,163,184,0.25)',
+                        }}
+                        whileTap={{ scale: 0.97 }}
+                        transition={{ duration: 0.18 }}
                       >
                         <img
                           src={method.iconUrl}
@@ -898,7 +962,7 @@ const BookingPage = () => {
                             <span className="h-2 w-2 rounded-full bg-white" />
                           </span>
                         )}
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
@@ -909,11 +973,23 @@ const BookingPage = () => {
                   </div>
                 )}
 
-                <button
+                <motion.button
                   type="button"
                   onClick={handleFinalSubmit}
                   disabled={!selectedPayment || loading.submit}
-                  className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:from-purple-600 hover:to-purple-700 disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-400"
+                  className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 px-4 py-3 text-sm font-semibold text-white shadow-lg disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-400"
+                  whileHover={
+                    !(!selectedPayment || loading.submit)
+                      ? {
+                          y: -2,
+                          boxShadow: '0 20px 44px rgba(88,28,135,0.45)',
+                        }
+                      : {}
+                  }
+                  whileTap={
+                    !(!selectedPayment || loading.submit) ? { scale: 0.97 } : {}
+                  }
+                  transition={{ duration: 0.18 }}
                 >
                   {loading.submit ? (
                     <>
@@ -926,12 +1002,12 @@ const BookingPage = () => {
                       Konfirmasi &amp; Bayar
                     </>
                   )}
-                </button>
+                </motion.button>
               </div>
             )}
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
