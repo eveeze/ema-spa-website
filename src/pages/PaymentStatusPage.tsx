@@ -1,7 +1,9 @@
 // src/pages/PaymentStatusPage.tsx
-import { useState, useEffect } from "react";
-import { useSearchParams, Link, useNavigate } from "react-router-dom";
-import apiClient from "../api/apiClient";
+
+import { useState, useEffect } from 'react';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import apiClient from '../api/apiClient';
 import {
   Loader2,
   CheckCircle2,
@@ -9,12 +11,12 @@ import {
   AlertTriangle,
   Clock,
   ArrowRight,
-} from "lucide-react";
+} from 'lucide-react';
 
 // Definisikan tipe data untuk detail pembayaran
 interface PaymentDetails {
   payment: {
-    status: "PAID" | "PENDING" | "FAILED" | "EXPIRED";
+    status: 'PAID' | 'PENDING' | 'FAILED' | 'EXPIRED' | 'REFUNDED';
     amount: number;
     paymentMethod: string;
   };
@@ -30,7 +32,7 @@ interface PaymentDetails {
 const PaymentStatusPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const reservationId = searchParams.get("reservation_id");
+  const reservationId = searchParams.get('reservation_id');
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +40,7 @@ const PaymentStatusPage = () => {
 
   useEffect(() => {
     if (!reservationId) {
-      setError("ID Reservasi tidak ditemukan. Pengalihan tidak valid.");
+      setError('ID Reservasi tidak ditemukan. Pengalihan tidak valid.');
       setLoading(false);
       return;
     }
@@ -47,22 +49,21 @@ const PaymentStatusPage = () => {
       setLoading(true);
       setError(null);
       try {
-        // Panggil endpoint yang sudah ada untuk mendapatkan detail pembayaran & reservasi
         const response = await apiClient.get(
-          `/reservations/payment/${reservationId}`
+          `/reservations/payment/${reservationId}`,
         );
         setDetails(response.data.data);
       } catch (err: unknown) {
-        console.error("Gagal memverifikasi pembayaran:", err);
+        console.error('Gagal memverifikasi pembayaran:', err);
 
         let errorMessage =
-          "Gagal memuat status pembayaran. Silakan cek halaman reservasi Anda.";
+          'Gagal memuat status pembayaran. Silakan cek halaman reservasi Anda.';
 
         if (
-          typeof err === "object" &&
+          typeof err === 'object' &&
           err !== null &&
-          "response" in err &&
-          typeof (err as Record<string, unknown>).response === "object"
+          'response' in err &&
+          typeof (err as Record<string, unknown>).response === 'object'
         ) {
           const response = (
             err as { response?: { data?: { message?: string } } }
@@ -83,132 +84,260 @@ const PaymentStatusPage = () => {
     // Beri jeda sedikit untuk memastikan callback dari Tripay sudah diproses oleh backend
     const timer = setTimeout(() => {
       verifyPayment();
-    }, 2000); // Jeda 2 detik
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, [reservationId]);
 
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString('id-ID', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+    }).format(amount);
+
   const renderContent = () => {
     if (loading) {
       return (
-        <div className="text-center">
-          <Loader2 className="w-16 h-16 animate-spin text-sky-600 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-800">
-            Memverifikasi Pembayaran Anda...
-          </h1>
-          <p className="text-gray-600 mt-2">Mohon tunggu sebentar.</p>
-        </div>
+        <motion.div
+          key="loading"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          className="text-center"
+        >
+          <div className="flex flex-col items-center gap-4">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+              className="relative"
+            >
+              <div className="absolute inset-0 rounded-full bg-sky-100/60 blur-xl" />
+              <Loader2 className="relative z-10 h-14 w-14 animate-spin text-sky-600" />
+            </motion.div>
+
+            <div>
+              <h1 className="text-2xl font-semibold text-slate-900">
+                Memverifikasi pembayaran Anda…
+              </h1>
+              <p className="mt-2 text-sm text-slate-500">
+                Mohon tunggu sebentar, kami sedang mengecek status transaksi.
+              </p>
+            </div>
+          </div>
+        </motion.div>
       );
     }
 
     if (error) {
       return (
-        <div className="text-center">
-          <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-red-600">Terjadi Kesalahan</h1>
-          <p className="text-gray-600 mt-2">{error}</p>
-          <button
-            onClick={() => navigate("/dashboard/reservations")}
-            className="mt-6 bg-sky-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-sky-600 transition-all flex items-center justify-center mx-auto gap-2"
-          >
-            Lihat Reservasi Saya <ArrowRight size={20} />
-          </button>
-        </div>
+        <motion.div
+          key="error"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          className="text-center"
+        >
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-amber-100/70 blur-xl" />
+              <AlertTriangle className="relative z-10 h-16 w-16 text-amber-500" />
+            </div>
+            <h1 className="text-2xl font-semibold text-red-600">
+              Terjadi kesalahan
+            </h1>
+            <p className="mt-2 text-sm text-slate-600 max-w-md mx-auto">
+              {error}
+            </p>
+            <button
+              onClick={() => navigate('/dashboard/reservations')}
+              className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-sky-500 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600 hover:shadow-md"
+            >
+              Lihat reservasi saya
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </motion.div>
       );
     }
 
     if (!details) return null;
 
-    const paymentStatus = details.payment.status.toUpperCase();
-    const reservation = details.reservation;
+    const { payment, reservation } = details;
+    const paymentStatus = payment.status.toUpperCase();
 
-    switch (paymentStatus) {
-      case "PAID":
-        return (
-          <div className="text-center">
-            <CheckCircle2 className="w-20 h-20 text-green-500 mx-auto mb-4" />
-            <h1 className="text-3xl font-bold text-gray-800">
-              Pembayaran Berhasil!
-            </h1>
-            <p className="text-gray-600 mt-2 mb-6">
-              Reservasi Anda untuk{" "}
-              <span className="font-semibold">{reservation.serviceName}</span>{" "}
-              telah dikonfirmasi.
-            </p>
-            <div className="bg-gray-50 rounded-lg p-4 text-left text-sm max-w-sm mx-auto">
-              <p>
-                <strong>Layanan:</strong> {reservation.serviceName}
-              </p>
-              <p>
-                <strong>Tanggal:</strong>{" "}
-                {new Date(reservation.sessionDate).toLocaleDateString("id-ID", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
-              <p>
-                <strong>Waktu:</strong> {reservation.sessionTime}
+    if (paymentStatus === 'PAID') {
+      return (
+        <motion.div
+          key="paid"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          className="text-center"
+        >
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-emerald-100/70 blur-xl" />
+              <CheckCircle2 className="relative z-10 h-20 w-20 text-emerald-500" />
+            </div>
+
+            <div>
+              <h1 className="text-3xl font-semibold text-slate-900">
+                Pembayaran berhasil!
+              </h1>
+              <p className="mt-2 text-sm text-slate-600 max-w-md mx-auto">
+                Reservasi Anda untuk{' '}
+                <span className="font-semibold">{reservation.serviceName}</span>{' '}
+                telah <span className="font-semibold">terkonfirmasi</span>.
               </p>
             </div>
-            <Link
-              to="/dashboard/reservations?status=confirmed"
-              className="mt-8 inline-flex items-center gap-2 bg-sky-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-sky-700 transition-transform transform hover:scale-105"
-            >
-              Lihat Detail Reservasi <ArrowRight size={20} />
-            </Link>
-          </div>
-        );
 
-      case "PENDING":
-        return (
-          <div className="text-center">
-            <Clock className="w-20 h-20 text-yellow-500 mx-auto mb-4" />
-            <h1 className="text-3xl font-bold text-gray-800">
-              Pembayaran Tertunda
-            </h1>
-            <p className="text-gray-600 mt-2 mb-6">
-              Kami sedang menunggu konfirmasi pembayaran Anda. Status reservasi
-              akan diperbarui secara otomatis.
-            </p>
-            <Link
-              to="/dashboard/reservations?status=pending"
-              className="mt-8 inline-flex items-center gap-2 bg-yellow-500 text-white font-bold py-3 px-8 rounded-lg hover:bg-yellow-600 transition-transform transform hover:scale-105"
-            >
-              Lihat Status di Dashboard <ArrowRight size={20} />
-            </Link>
-          </div>
-        );
+            <div className="mt-4 w-full max-w-md rounded-2xl bg-slate-50/80 p-4 text-left text-sm ring-1 ring-slate-100">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+                <span className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                  Detail reservasi
+                </span>
+                <span className="text-xs font-semibold text-emerald-600">
+                  {payment.paymentMethod}
+                </span>
+              </div>
+              <p className="mb-1">
+                <span className="font-medium text-slate-700">Layanan:</span>{' '}
+                {reservation.serviceName}
+              </p>
+              <p className="mb-1">
+                <span className="font-medium text-slate-700">Tanggal:</span>{' '}
+                {formatDate(reservation.sessionDate)}
+              </p>
+              <p className="mb-1">
+                <span className="font-medium text-slate-700">Waktu:</span>{' '}
+                {reservation.sessionTime}
+              </p>
+              <p className="mt-2 text-sm font-semibold text-slate-900">
+                Total: {formatCurrency(payment.amount)}
+              </p>
+            </div>
 
-      default: // FAILED, EXPIRED
-        return (
-          <div className="text-center">
-            <XCircle className="w-20 h-20 text-red-500 mx-auto mb-4" />
-            <h1 className="text-3xl font-bold text-gray-800">
-              Pembayaran Gagal
-            </h1>
-            <p className="text-gray-600 mt-2 mb-6">
-              Pembayaran untuk reservasi{" "}
-              <span className="font-semibold">{reservation.serviceName}</span>{" "}
-              tidak berhasil ({paymentStatus.toLowerCase()}).
-            </p>
             <Link
-              to={`/booking/${reservation.id}`} // Asumsi ID service bisa didapat atau link kembali ke dashboard
-              className="mt-8 inline-flex items-center gap-2 bg-red-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-red-700 transition-transform transform hover:scale-105"
+              to="/dashboard/reservations"
+              className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-sky-500 px-7 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-sky-600 hover:shadow-lg"
             >
-              Coba Lagi <ArrowRight size={20} />
+              Lihat di dashboard
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-        );
+        </motion.div>
+      );
     }
+
+    if (paymentStatus === 'PENDING') {
+      return (
+        <motion.div
+          key="pending"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          className="text-center"
+        >
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-amber-100/70 blur-xl" />
+              <Clock className="relative z-10 h-18 w-18 text-amber-500" />
+            </div>
+
+            <h1 className="text-3xl font-semibold text-slate-900">
+              Pembayaran tertunda
+            </h1>
+            <p className="mt-2 text-sm text-slate-600 max-w-md mx-auto">
+              Kami masih menunggu konfirmasi dari penyedia pembayaran. Status
+              reservasi akan diperbarui secara otomatis.
+            </p>
+
+            <Link
+              to="/dashboard/reservations"
+              className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-amber-500 px-7 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-amber-600 hover:shadow-lg"
+            >
+              Lihat status di dashboard
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </motion.div>
+      );
+    }
+
+    // FAILED / EXPIRED / REFUNDED / lainnya
+    return (
+      <motion.div
+        key="failed"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="text-center"
+      >
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="absolute inset-0 rounded-full bg-rose-100/70 blur-xl" />
+            <XCircle className="relative z-10 h-20 w-20 text-rose-500" />
+          </div>
+
+          <h1 className="text-3xl font-semibold text-slate-900">
+            Pembayaran tidak berhasil
+          </h1>
+          <p className="mt-2 text-sm text-slate-600 max-w-md mx-auto">
+            Pembayaran untuk{' '}
+            <span className="font-semibold">{reservation.serviceName}</span>{' '}
+            tidak dapat diproses ({paymentStatus.toLowerCase()}).
+          </p>
+
+          <div className="mt-3 text-xs text-slate-500">
+            Jika saldo terpotong namun status belum berubah, silakan hubungi
+            admin kami.
+          </div>
+
+          <Link
+            to={`/dashboard/reservations`}
+            className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-rose-500 px-7 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-rose-600 hover:shadow-lg"
+          >
+            Kembali ke reservasi
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </motion.div>
+    );
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 to-pink-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 max-w-2xl w-full">
-        {renderContent()}
+    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-50 via-white to-pink-50 px-4 overflow-x-hidden">
+      {/* soft glow background */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-24 top-10 h-48 w-48 rounded-full bg-sky-100/70 blur-3xl" />
+        <div className="absolute -right-24 bottom-10 h-56 w-56 rounded-full bg-pink-100/70 blur-3xl" />
       </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: 'easeOut' }}
+        className="relative z-10 w-full max-w-2xl"
+      >
+        <div className="rounded-3xl bg-white/95 p-6 sm:p-8 md:p-10 shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-1 ring-sky-100">
+          <AnimatePresence mode="wait">{renderContent()}</AnimatePresence>
+        </div>
+      </motion.div>
     </div>
   );
 };
