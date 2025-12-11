@@ -40,7 +40,6 @@ const SchedulePage: React.FC = () => {
     refetch,
   } = useAvailableSchedule(selectedDate);
 
-  // Refetch setiap kali selectedDate berubah
   useEffect(() => {
     if (selectedDate) {
       refetch();
@@ -131,7 +130,7 @@ const SchedulePage: React.FC = () => {
               </h1>
               <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-600">
                 Lihat ketersediaan sesi spa harian. Pilih hari dan jam yang
-                paling cocok, lalu lanjutkan ke pemilihan layanan.
+                paling cocok, lalu lanjutkan memilih layanan favorit.
               </p>
             </div>
           </div>
@@ -302,6 +301,32 @@ const SchedulePage: React.FC = () => {
           </div>
         ) : (
           <section className="space-y-4">
+            {/* ⬅ microcopy flow booking */}
+            <div className="flex flex-col gap-3 rounded-2xl border border-sky-100 bg-sky-50/70 px-4 py-3 text-xs text-slate-600 shadow-sm sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex items-start gap-2">
+                <div className="mt-[3px] flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-sm">
+                  <Sparkles className="h-3 w-3 text-sky-500" />
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-800">
+                    Cara melakukan reservasi:
+                  </p>
+                  <ol className="mt-1 list-decimal pl-4 space-y-0.5">
+                    <li>Pilih hari di atas dan lihat jam yang masih tersedia.</li>
+                    <li>
+                      Tekan tombol <span className="font-semibold">“Booking”</span>{" "}
+                      di jam yang diinginkan.
+                    </li>
+                    <li>
+                      Anda akan diarahkan ke halaman{" "}
+                      <span className="font-semibold">Layanan</span> untuk
+                      memilih jenis perawatan & menyelesaikan reservasi.
+                    </li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
                 Jadwal tersedia
@@ -370,9 +395,7 @@ const SchedulePage: React.FC = () => {
                             </div>
                             <button
                               type="button"
-                              onClick={() =>
-                                navigate(`/services?date=${selectedDate}`)
-                              }
+                              onClick={() => navigate("/services")}
                               className="rounded-full bg-gradient-to-r from-sky-500 to-sky-600 px-3 py-1 text-[11px] font-semibold text-white shadow-sm transition-all hover:shadow-md hover:brightness-110"
                             >
                               Booking
