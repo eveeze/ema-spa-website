@@ -15,12 +15,26 @@ import {
   ResendOtpPayload,
   OnlineRatingPayload,
   Rating,
-  ReschedulePayload, // BARU: Import tipe ini
+  ReschedulePayload,
 } from "../types";
+
+// --- Tipe Data untuk Forgot Password ---
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface VerifyResetOtpPayload {
+  email: string;
+  otp: string;
+}
+
+export interface ResetPasswordPayload {
+  email: string;
+  newPassword: string;
+}
 
 /**
  * Mendaftarkan customer baru.
- * @param payload - Data registrasi (nama, email, no. telp, password).
  */
 export const registerCustomer = async (
   payload: RegisterPayload
@@ -33,8 +47,7 @@ export const registerCustomer = async (
 };
 
 /**
- * Memverifikasi OTP yang dimasukkan oleh pengguna.
- * @param payload - Data verifikasi (email, otp).
+ * Memverifikasi OTP registrasi.
  */
 export const verifyOtp = async (
   payload: VerifyOtpPayload
@@ -47,8 +60,7 @@ export const verifyOtp = async (
 };
 
 /**
- * Meminta server untuk mengirim ulang OTP ke email pengguna.
- * @param payload - Data (email).
+ * Mengirim ulang OTP registrasi.
  */
 export const resendOtp = async (
   payload: ResendOtpPayload
@@ -59,6 +71,40 @@ export const resendOtp = async (
   );
   return response.data;
 };
+
+// --- IMPLEMENTASI FORGOT PASSWORD BARU ---
+
+/**
+ * Langkah 1: Request OTP untuk reset password
+ */
+export const forgotPassword = async (
+  payload: ForgotPasswordPayload
+): Promise<ApiResponse<any>> => {
+  const response = await apiClient.post("/customer/forgot-password", payload);
+  return response.data;
+};
+
+/**
+ * Langkah 2: Verifikasi OTP Reset Password
+ */
+export const verifyResetOtp = async (
+  payload: VerifyResetOtpPayload
+): Promise<ApiResponse<any>> => {
+  const response = await apiClient.post("/customer/verify-reset-otp", payload);
+  return response.data;
+};
+
+/**
+ * Langkah 3: Set Password Baru
+ */
+export const resetPassword = async (
+  payload: ResetPasswordPayload
+): Promise<ApiResponse<any>> => {
+  const response = await apiClient.post("/customer/reset-password", payload);
+  return response.data;
+};
+
+// --- END IMPLEMENTASI BARU ---
 
 /**
  * Mengambil daftar reservasi milik pelanggan yang sedang login.
@@ -96,7 +142,6 @@ export const getMyReservations = async (
 
 /**
  * Mengambil detail satu reservasi berdasarkan ID-nya.
- * @param reservationId - ID dari reservasi yang ingin dilihat.
  */
 export const getReservationById = async (
   reservationId: string
@@ -117,7 +162,6 @@ export const getMyProfile = async (): Promise<Customer> => {
 
 /**
  * Memperbarui data profil pelanggan.
- * @param payload - Data baru untuk profil, HARUS menyertakan `id`.
  */
 export const updateMyProfile = async (
   payload: UpdateProfilePayload
@@ -134,7 +178,6 @@ export const updateMyProfile = async (
 
 /**
  * Membuat reservasi baru.
- * @param payload - Data yang diperlukan untuk membuat reservasi.
  */
 export const createReservation = async (
   payload: ReservationPayload
@@ -147,7 +190,7 @@ export const createReservation = async (
 };
 
 /**
- * Mengambil daftar metode pembayaran yang tersedia dari Tripay.
+ * Mengambil daftar metode pembayaran yang tersedia.
  */
 export const getAvailablePaymentMethods = async (): Promise<
   ApiResponse<PaymentMethod[]>
@@ -160,7 +203,6 @@ export const getAvailablePaymentMethods = async (): Promise<
 
 /**
  * Mengambil detail pembayaran untuk sebuah reservasi.
- * @param reservationId - ID reservasi.
  */
 export const getPaymentDetails = async (
   reservationId: string
@@ -172,9 +214,7 @@ export const getPaymentDetails = async (
 };
 
 /**
- * Mengunggah bukti pembayaran manual (transfer bank).
- * @param reservationId - ID reservasi terkait.
- * @param file - File bukti pembayaran.
+ * Mengunggah bukti pembayaran manual.
  */
 export const uploadPaymentProof = async ({
   reservationId,
@@ -199,8 +239,7 @@ export const uploadPaymentProof = async ({
 };
 
 /**
- * Mengambil daftar time slots yang tersedia untuk tanggal tertentu.
- * @param dateString - Tanggal dalam format YYYY-MM-DD.
+ * Mengambil daftar time slots yang tersedia.
  */
 export const getAvailableTimeSlotsForDate = async (
   dateString: string
@@ -212,8 +251,7 @@ export const getAvailableTimeSlotsForDate = async (
 };
 
 /**
- * Mengirim rating untuk sebuah reservasi oleh customer yang login.
- * @param payload - Data rating (reservationId, rating, comment).
+ * Mengirim rating online.
  */
 export const createOnlineRating = async (
   payload: OnlineRatingPayload
@@ -226,13 +264,11 @@ export const createOnlineRating = async (
 };
 
 /**
- * BARU: Melakukan penjadwalan ulang (reschedule) reservasi.
- * @param payload - Data reschedule (reservationId, newSessionId).
+ * Melakukan penjadwalan ulang (reschedule) reservasi.
  */
 export const rescheduleReservation = async (
   payload: ReschedulePayload
 ): Promise<ApiResponse<Reservation>> => {
-  // Endpoint sesuai backend: PUT /api/reservations/customer/:id/reschedule
   const response = await apiClient.put<ApiResponse<Reservation>>(
     `/reservations/customer/${payload.reservationId}/reschedule`,
     {
