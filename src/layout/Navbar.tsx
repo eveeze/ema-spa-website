@@ -99,8 +99,23 @@ const Navbar: React.FC = () => {
             )}
           </div>
 
-          {/* Tombol Menu Mobile */}
-          <div className="md:hidden">
+          {/* Right Actions Mobile: Notification + Hamburger */}
+          <div className="md:hidden flex items-center gap-2">
+            {/* NOTIFICATION beside hamburger (mobile only) */}
+            {isAuthenticated && (
+              <motion.div
+                initial={{ opacity: 0, x: 6 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="inline-flex items-center"
+              >
+                <div className="flex items-center gap-2 rounded-full border border-sky-100 bg-white/90 px-2 py-1 shadow-sm">
+                  <NotificationIcon />
+                </div>
+              </motion.div>
+            )}
+
+            {/* Hamburger */}
             <motion.button
               onClick={() => setIsOpen((prev) => !prev)}
               className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-sky-100 bg-white/90 shadow-sm text-slate-700 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
@@ -170,12 +185,11 @@ const Navbar: React.FC = () => {
                   Jadwal
                 </NavLink>
 
-                {/* Tombol untuk Mobile */}
+                {/* Tombol untuk Mobile (NO notification here anymore) */}
                 <div className="mt-2 flex flex-col items-center gap-2 pb-3">
                   {isAuthenticated ? (
                     <>
-                      <div className="flex items-center gap-2 rounded-full border border-sky-100 bg-sky-50/70 px-3 py-1.5 shadow-sm">
-                        <NotificationIcon />
+                      <div className="flex items-center justify-center gap-2 rounded-full border border-sky-100 bg-sky-50/70 px-3 py-1.5 shadow-sm">
                         <span className="text-sm text-slate-700">
                           Halo, {user?.name || "User"}
                         </span>
