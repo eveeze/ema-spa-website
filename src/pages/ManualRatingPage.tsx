@@ -52,8 +52,10 @@ const ManualRatingPage: React.FC = () => {
   }, [token]);
 
   // 2. Handle Submit
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
+    // Tambahkan pengecekan if (e) sebelum preventDefault
+    if (e) e.preventDefault();
+
     if (rating === 0) return;
     if (!token) return;
 
@@ -68,13 +70,12 @@ const ManualRatingPage: React.FC = () => {
     } catch (err: any) {
       alert(
         err.response?.data?.message ||
-          "Gagal mengirim rating. Silakan coba lagi."
+        "Gagal mengirim rating. Silakan coba lagi."
       );
     } finally {
       setSubmitting(false);
     }
   };
-
   // --- RENDERING ---
 
   // State: Loading Awal
@@ -189,11 +190,10 @@ const ManualRatingPage: React.FC = () => {
                   >
                     <Star
                       size={42}
-                      className={`transition-colors duration-200 ${
-                        (hoverRating || rating) >= star
-                          ? "fill-amber-400 text-amber-400 drop-shadow-sm"
-                          : "fill-transparent text-slate-300"
-                      }`}
+                      className={`transition-colors duration-200 ${(hoverRating || rating) >= star
+                        ? "fill-amber-400 text-amber-400 drop-shadow-sm"
+                        : "fill-transparent text-slate-300"
+                        }`}
                       strokeWidth={1.5}
                     />
                   </button>
@@ -236,17 +236,19 @@ const ManualRatingPage: React.FC = () => {
               }
             >
               <Button
-                // type="submit"  <- Hapus ini karena props tidak ada, tapi di dalam form button akan default submit
+                // Karena Button ini tidak memicu form onSubmit secara otomatis,
+                // kita panggil handleSubmit secara manual saat di-klik.
+                onClick={handleSubmit}
+
                 variant="gradient"
                 size="lg"
-                className="w-full shadow-xl shadow-sky-200 flex justify-center" // Pengganti fullWidth
+                className="w-full shadow-xl shadow-sky-200 flex justify-center"
               >
-                {/* Handle loading state via text karena button tidak punya prop isLoading */}
                 {submitting
                   ? "Mengirim..."
                   : rating === 0
-                  ? "Pilih Bintang Dulu"
-                  : "Kirim Penilaian"}
+                    ? "Pilih Bintang Dulu"
+                    : "Kirim Penilaian"}
               </Button>
             </div>
           </form>
