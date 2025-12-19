@@ -50,7 +50,7 @@ const CtaSection: React.FC = () => {
             className="mt-10 flex justify-center"
           >
             <Button
-              to="/booking"
+              to="/services"
               size="lg"
               variant="sky"
               className="shadow-xl shadow-sky-200/50 hover:shadow-2xl hover:shadow-sky-300/60 !px-10 !py-4 !text-lg"

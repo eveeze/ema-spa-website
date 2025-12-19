@@ -26,6 +26,9 @@ import ReservationDetailPage from "./pages/ReservationDetailPage.tsx";
 import SchedulePage from "./pages/SchedulePage.tsx";
 import VerifyOtpPage from "./pages/VerifyOtpPage.tsx";
 
+// --- BARU: Import Halaman Manual Rating ---
+import ManualRatingPage from "./pages/ManualRatingPage.tsx";
+
 // Buat instance QueryClient
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,6 +53,9 @@ const router = createBrowserRouter([
       { path: "schedule", element: <SchedulePage /> },
       { path: "verify-otp", element: <VerifyOtpPage /> },
       { path: "payment/status", element: <PaymentStatusPage /> },
+
+      // --- BARU: Route untuk Rating Manual (Publik) ---
+      { path: "rating/:token", element: <ManualRatingPage /> },
 
       {
         element: <ProtectedRoute />,

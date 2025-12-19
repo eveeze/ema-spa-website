@@ -148,7 +148,8 @@ const HeroSection: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-200/90">
-                  Jalan Pengging Sanggung, Dusun Kebatan RT.06/RW.02, Jenengan. Area nyaman dengan ruang tunggu luas untuk keluarga.
+                  Jalan Pengging Sanggung, Dusun Kebatan RT.06/RW.02, Jenengan.
+                  Area nyaman dengan ruang tunggu luas untuk keluarga.
                 </p>
               </div>
             </div>
