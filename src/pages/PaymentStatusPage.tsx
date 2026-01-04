@@ -1,9 +1,9 @@
 // src/pages/PaymentStatusPage.tsx
 
-import { useState, useEffect } from 'react';
-import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import apiClient from '../api/apiClient';
+import { useState, useEffect } from "react";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import apiClient from "../api/apiClient";
 import {
   Loader2,
   CheckCircle2,
@@ -11,12 +11,12 @@ import {
   AlertTriangle,
   Clock,
   ArrowRight,
-} from 'lucide-react';
+} from "lucide-react";
 
 // Definisikan tipe data untuk detail pembayaran
 interface PaymentDetails {
   payment: {
-    status: 'PAID' | 'PENDING' | 'FAILED' | 'EXPIRED' | 'REFUNDED';
+    status: "PAID" | "PENDING" | "FAILED" | "EXPIRED" | "REFUNDED";
     amount: number;
     paymentMethod: string;
   };
@@ -32,7 +32,7 @@ interface PaymentDetails {
 const PaymentStatusPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const reservationId = searchParams.get('reservation_id');
+  const reservationId = searchParams.get("reservation_id");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +40,7 @@ const PaymentStatusPage = () => {
 
   useEffect(() => {
     if (!reservationId) {
-      setError('ID Reservasi tidak ditemukan. Pengalihan tidak valid.');
+      setError("ID Reservasi tidak ditemukan. Pengalihan tidak valid.");
       setLoading(false);
       return;
     }
@@ -50,20 +50,20 @@ const PaymentStatusPage = () => {
       setError(null);
       try {
         const response = await apiClient.get(
-          `/reservations/payment/${reservationId}`,
+          `/reservations/payment/${reservationId}`
         );
         setDetails(response.data.data);
       } catch (err: unknown) {
-        console.error('Gagal memverifikasi pembayaran:', err);
+        console.error("Gagal memverifikasi pembayaran:", err);
 
         let errorMessage =
-          'Gagal memuat status pembayaran. Silakan cek halaman reservasi Anda.';
+          "Gagal memuat status pembayaran. Silakan cek halaman reservasi Anda.";
 
         if (
-          typeof err === 'object' &&
+          typeof err === "object" &&
           err !== null &&
-          'response' in err &&
-          typeof (err as Record<string, unknown>).response === 'object'
+          "response" in err &&
+          typeof (err as Record<string, unknown>).response === "object"
         ) {
           const response = (
             err as { response?: { data?: { message?: string } } }
@@ -89,20 +89,34 @@ const PaymentStatusPage = () => {
     return () => clearTimeout(timer);
   }, [reservationId]);
 
-  const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString('id-ID', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+  // --- PERBAIKAN DI SINI (FORMAT TANGGAL & WAKTU) ---
+
+  const formatDate = (iso: string) => {
+    // Memaksa zona waktu ke Asia/Jakarta (WIB)
+    return new Date(iso).toLocaleDateString("id-ID", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      timeZone: "Asia/Jakarta",
     });
+  };
+
+  const formatTimeStr = (timeStr: string) => {
+    // Jika format dari backend "14:00:00", kita ambil "14:00" saja
+    // Jika formatnya sudah "14:00", biarkan saja
+    const cleanTime = timeStr.split(":").slice(0, 2).join(":");
+    return `${cleanTime} WIB`;
+  };
 
   const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
+    new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
       minimumFractionDigits: 0,
     }).format(amount);
+
+  // ----------------------------------------------------
 
   const renderContent = () => {
     if (loading) {
@@ -112,14 +126,14 @@ const PaymentStatusPage = () => {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
           className="text-center"
         >
           <div className="flex flex-col items-center gap-4">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
               className="relative"
             >
               <div className="absolute inset-0 rounded-full bg-sky-100/60 blur-xl" />
@@ -146,7 +160,7 @@ const PaymentStatusPage = () => {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
           className="text-center"
         >
           <div className="flex flex-col items-center gap-4">
@@ -161,7 +175,7 @@ const PaymentStatusPage = () => {
               {error}
             </p>
             <button
-              onClick={() => navigate('/dashboard/reservations')}
+              onClick={() => navigate("/dashboard/reservations")}
               className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-sky-500 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600 hover:shadow-md"
             >
               Lihat reservasi saya
@@ -177,14 +191,14 @@ const PaymentStatusPage = () => {
     const { payment, reservation } = details;
     const paymentStatus = payment.status.toUpperCase();
 
-    if (paymentStatus === 'PAID') {
+    if (paymentStatus === "PAID") {
       return (
         <motion.div
           key="paid"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
           className="text-center"
         >
           <div className="flex flex-col items-center gap-4">
@@ -198,8 +212,8 @@ const PaymentStatusPage = () => {
                 Pembayaran berhasil!
               </h1>
               <p className="mt-2 text-sm text-slate-600 max-w-md mx-auto">
-                Reservasi Anda untuk{' '}
-                <span className="font-semibold">{reservation.serviceName}</span>{' '}
+                Reservasi Anda untuk{" "}
+                <span className="font-semibold">{reservation.serviceName}</span>{" "}
                 telah <span className="font-semibold">terkonfirmasi</span>.
               </p>
             </div>
@@ -214,16 +228,17 @@ const PaymentStatusPage = () => {
                 </span>
               </div>
               <p className="mb-1">
-                <span className="font-medium text-slate-700">Layanan:</span>{' '}
+                <span className="font-medium text-slate-700">Layanan:</span>{" "}
                 {reservation.serviceName}
               </p>
               <p className="mb-1">
-                <span className="font-medium text-slate-700">Tanggal:</span>{' '}
+                <span className="font-medium text-slate-700">Tanggal:</span>{" "}
                 {formatDate(reservation.sessionDate)}
               </p>
               <p className="mb-1">
-                <span className="font-medium text-slate-700">Waktu:</span>{' '}
-                {reservation.sessionTime}
+                <span className="font-medium text-slate-700">Waktu:</span>{" "}
+                {/* Menggunakan helper formatTimeStr */}
+                {formatTimeStr(reservation.sessionTime)}
               </p>
               <p className="mt-2 text-sm font-semibold text-slate-900">
                 Total: {formatCurrency(payment.amount)}
@@ -242,14 +257,14 @@ const PaymentStatusPage = () => {
       );
     }
 
-    if (paymentStatus === 'PENDING') {
+    if (paymentStatus === "PENDING") {
       return (
         <motion.div
           key="pending"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
           className="text-center"
         >
           <div className="flex flex-col items-center gap-4">
@@ -285,7 +300,7 @@ const PaymentStatusPage = () => {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -8 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
         className="text-center"
       >
         <div className="flex flex-col items-center gap-4">
@@ -298,8 +313,8 @@ const PaymentStatusPage = () => {
             Pembayaran tidak berhasil
           </h1>
           <p className="mt-2 text-sm text-slate-600 max-w-md mx-auto">
-            Pembayaran untuk{' '}
-            <span className="font-semibold">{reservation.serviceName}</span>{' '}
+            Pembayaran untuk{" "}
+            <span className="font-semibold">{reservation.serviceName}</span>{" "}
             tidak dapat diproses ({paymentStatus.toLowerCase()}).
           </p>
 
@@ -331,7 +346,7 @@ const PaymentStatusPage = () => {
       <motion.div
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, ease: 'easeOut' }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
         className="relative z-10 w-full max-w-2xl"
       >
         <div className="rounded-3xl bg-white/95 p-6 sm:p-8 md:p-10 shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-1 ring-sky-100">
