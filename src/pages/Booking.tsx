@@ -1,15 +1,15 @@
 // src/pages/BookingPage.tsx
-import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import apiClient from '../api/apiClient';
+import { useState, useEffect, useMemo } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import apiClient from "../api/apiClient";
 import {
   Service,
   Session,
   PaymentMethod,
   ReservationPayload,
   ApiResponse,
-} from '../types';
-import { useAuth } from '../hooks/useAuth';
+} from "../types";
+import { useAuth } from "../hooks/useAuth";
 import {
   Calendar,
   Baby,
@@ -19,14 +19,14 @@ import {
   Clock,
   User,
   CreditCard,
-} from 'lucide-react';
-import { motion } from 'framer-motion';
+} from "lucide-react";
+import { motion } from "framer-motion";
 
 // =======================
 // Helper: format umur (bulan → label)
 // =======================
 const formatMonthLabel = (months: number | null | undefined) => {
-  if (months == null) return '';
+  if (months == null) return "";
   if (months < 12) return `${months} bln`;
 
   const years = Math.floor(months / 12);
@@ -38,7 +38,7 @@ const formatMonthLabel = (months: number | null | undefined) => {
 
 const formatAgeRange = (
   min: number | null | undefined,
-  max: number | null | undefined,
+  max: number | null | undefined
 ) => {
   const minLabel = formatMonthLabel(min);
   const maxLabel = formatMonthLabel(max);
@@ -57,9 +57,9 @@ const BookingPage = () => {
 
   const queryParams = useMemo(
     () => new URLSearchParams(location.search),
-    [location.search],
+    [location.search]
   );
-  const priceTierIdFromUrl = queryParams.get('priceTierId');
+  const priceTierIdFromUrl = queryParams.get("priceTierId");
 
   const [service, setService] = useState<Service | null>(null);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
@@ -69,9 +69,9 @@ const BookingPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
-    null,
+    null
   );
-  const [babyInfo, setBabyInfo] = useState({ name: '', age: '' });
+  const [babyInfo, setBabyInfo] = useState({ name: "", age: "" });
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
   const [selectedPriceTierId] = useState<string | null>(priceTierIdFromUrl);
 
@@ -106,7 +106,7 @@ const BookingPage = () => {
     const fetchInitialData = async () => {
       try {
         const serviceRes = await apiClient.get<ApiResponse<Service>>(
-          `/service/${serviceId}`,
+          `/service/${serviceId}`
         );
         setService(serviceRes.data.data);
 
@@ -116,17 +116,17 @@ const BookingPage = () => {
 
         const scheduleRes = await apiClient.get<
           ApiResponse<OperatingSchedule[]>
-        >('/operating-schedule?isHoliday=false');
+        >("/operating-schedule?isHoliday=false");
 
         if (Array.isArray(scheduleRes.data.data)) {
           const allDates = scheduleRes.data.data.map(
-            (s: OperatingSchedule) => s.date.split('T')[0],
+            (s: OperatingSchedule) => s.date.split("T")[0]
           );
           const futureDates = filterFutureDates(allDates);
           setAvailableDates(futureDates);
         }
       } catch (err) {
-        setError('Gagal memuat detail layanan atau jadwal.');
+        setError("Gagal memuat detail layanan atau jadwal.");
         console.error(err);
       } finally {
         setLoading((prev) => ({ ...prev, service: false, dates: false }));
@@ -151,13 +151,13 @@ const BookingPage = () => {
           `/session/available`,
           {
             params: { date: selectedDate, duration: service.duration },
-          },
+          }
         );
         if (Array.isArray(response.data.data)) {
           setAvailableSessions(response.data.data);
         }
       } catch (err) {
-        console.error('Gagal memuat sesi:', err);
+        console.error("Gagal memuat sesi:", err);
       } finally {
         setLoading((prev) => ({ ...prev, sessions: false }));
       }
@@ -175,13 +175,13 @@ const BookingPage = () => {
     const fetchPaymentMethods = async () => {
       try {
         const response = await apiClient.get<ApiResponse<PaymentMethod[]>>(
-          '/reservations/payment-methods',
+          "/reservations/payment-methods"
         );
         if (Array.isArray(response.data.data)) {
           setPaymentMethods(response.data.data);
         }
       } catch (err) {
-        console.error('Gagal memuat metode pembayaran:', err);
+        console.error("Gagal memuat metode pembayaran:", err);
       }
     };
 
@@ -193,7 +193,7 @@ const BookingPage = () => {
   // =======================
   const selectedSession = useMemo(
     () => availableSessions.find((s) => s.id === selectedSessionId),
-    [availableSessions, selectedSessionId],
+    [availableSessions, selectedSessionId]
   );
 
   const selectedTier = useMemo(() => {
@@ -216,11 +216,11 @@ const BookingPage = () => {
     if (selectedTier) {
       return {
         allowedMin:
-          typeof selectedTier.minBabyAge === 'number'
+          typeof selectedTier.minBabyAge === "number"
             ? selectedTier.minBabyAge
             : null,
         allowedMax:
-          typeof selectedTier.maxBabyAge === 'number'
+          typeof selectedTier.maxBabyAge === "number"
             ? selectedTier.maxBabyAge
             : null,
       };
@@ -228,9 +228,9 @@ const BookingPage = () => {
     if (service) {
       return {
         allowedMin:
-          typeof service.minBabyAge === 'number' ? service.minBabyAge : null,
+          typeof service.minBabyAge === "number" ? service.minBabyAge : null,
         allowedMax:
-          typeof service.maxBabyAge === 'number' ? service.maxBabyAge : null,
+          typeof service.maxBabyAge === "number" ? service.maxBabyAge : null,
       };
     }
     return { allowedMin: null, allowedMax: null };
@@ -238,7 +238,7 @@ const BookingPage = () => {
 
   const ageRangeText = useMemo(
     () => formatAgeRange(allowedMin, allowedMax),
-    [allowedMin, allowedMax],
+    [allowedMin, allowedMax]
   );
 
   const isAgeValid = useMemo(() => {
@@ -263,19 +263,19 @@ const BookingPage = () => {
       !babyInfo.age ||
       !selectedPayment
     ) {
-      setError('Harap lengkapi semua informasi sebelum melanjutkan.');
+      setError("Harap lengkapi semua informasi sebelum melanjutkan.");
       return;
     }
 
     if (service?.hasPriceTiers && !selectedPriceTierId) {
       setError(
-        'Terjadi kesalahan, tingkatan harga tidak terpilih. Silakan kembali ke halaman detail layanan.',
+        "Terjadi kesalahan, tingkatan harga tidak terpilih. Silakan kembali ke halaman detail layanan."
       );
       return;
     }
 
     if (!isAgeValid) {
-      const rangeText = ageRangeText || 'rentang usia yang diperbolehkan';
+      const rangeText = ageRangeText || "rentang usia yang diperbolehkan";
       setError(`Usia bayi harus berada dalam ${rangeText}.`);
       return;
     }
@@ -293,30 +293,30 @@ const BookingPage = () => {
     };
 
     try {
-      const response = await apiClient.post('/reservations', payload);
+      const response = await apiClient.post("/reservations", payload);
       const paymentUrl = response.data?.data?.payment?.tripayPaymentUrl;
 
       if (paymentUrl) {
         window.location.href = paymentUrl;
       } else {
         console.warn(
-          'Payment URL not found in response, navigating to dashboard.',
+          "Payment URL not found in response, navigating to dashboard."
         );
         setError(
-          'Gagal mengalihkan ke halaman pembayaran. Silakan cek status reservasi Anda di dashboard.',
+          "Gagal mengalihkan ke halaman pembayaran. Silakan cek status reservasi Anda di dashboard."
         );
-        navigate('/dashboard/reservations?status=pending');
+        navigate("/dashboard/reservations?status=pending");
       }
     } catch (err: unknown) {
-      console.error('Reservation failed. Response data:', err);
+      console.error("Reservation failed. Response data:", err);
 
-      let errorMessage = 'Terjadi kesalahan saat membuat reservasi.';
+      let errorMessage = "Terjadi kesalahan saat membuat reservasi.";
 
       if (
-        typeof err === 'object' &&
+        typeof err === "object" &&
         err !== null &&
-        'response' in err &&
-        typeof (err as Record<string, unknown>).response === 'object'
+        "response" in err &&
+        typeof (err as Record<string, unknown>).response === "object"
       ) {
         const response = (err as { response?: { data?: { message?: string } } })
           .response;
@@ -378,12 +378,12 @@ const BookingPage = () => {
   // Step config
   // =======================
   const stepConfig = [
-    { icon: Calendar, title: 'Pilih Jadwal', color: 'bg-sky-500' },
-    { icon: Baby, title: 'Data Bayi', color: 'bg-emerald-500' },
+    { icon: Calendar, title: "Pilih Jadwal", color: "bg-sky-500" },
+    { icon: Baby, title: "Data Bayi", color: "bg-emerald-500" },
     {
       icon: CreditCard,
-      title: 'Pembayaran',
-      color: 'bg-purple-500',
+      title: "Pembayaran",
+      color: "bg-purple-500",
     },
   ];
 
@@ -396,14 +396,14 @@ const BookingPage = () => {
         className="mx-auto max-w-6xl px-4 pb-16 pt-6 sm:px-6 lg:px-8 lg:pt-10"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, ease: 'easeOut' }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
       >
         {/* HEADER CARD */}
         <motion.div
           className="mb-6 rounded-3xl bg-white/90 p-4 shadow-md ring-1 ring-sky-100/80 sm:p-6 lg:p-8"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05, duration: 0.4, ease: 'easeOut' }}
+          transition={{ delay: 0.05, duration: 0.4, ease: "easeOut" }}
         >
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             {/* Left: title & breadcrumb */}
@@ -431,7 +431,7 @@ const BookingPage = () => {
                 </h1>
                 {service && (
                   <p className="max-w-2xl text-sm leading-relaxed text-slate-600 md:text-[15px]">
-                    Anda sedang melakukan reservasi untuk{' '}
+                    Anda sedang melakukan reservasi untuk{" "}
                     <span className="font-semibold text-sky-700">
                       {service.name}
                     </span>
@@ -448,7 +448,7 @@ const BookingPage = () => {
                 className="mt-2 flex w-full max-w-xs flex-col gap-3 rounded-2xl bg-sky-50/70 p-4 text-right shadow-inner ring-1 ring-sky-100/80 lg:mt-0"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.4, ease: 'easeOut' }}
+                transition={{ delay: 0.1, duration: 0.4, ease: "easeOut" }}
               >
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-500">
                   Estimasi Sesi
@@ -463,7 +463,7 @@ const BookingPage = () => {
                     </p>
                     {ageRangeText && (
                       <p className="mt-1 text-[11px] text-slate-500">
-                        Usia bayi:{' '}
+                        Usia bayi:{" "}
                         <span className="font-semibold text-sky-700">
                           {ageRangeText}
                         </span>
@@ -475,7 +475,7 @@ const BookingPage = () => {
                       Harga mulai dari
                     </p>
                     <p className="text-lg font-semibold text-sky-700 md:text-xl">
-                      Rp {finalPrice.toLocaleString('id-ID')}
+                      Rp {finalPrice.toLocaleString("id-ID")}
                     </p>
                   </div>
                 </div>
@@ -502,14 +502,14 @@ const BookingPage = () => {
                       className={`flex h-12 w-12 items-center justify-center rounded-full border text-xs 
                 ${
                   isCompleted
-                    ? 'border-emerald-500 bg-emerald-500 text-white'
+                    ? "border-emerald-500 bg-emerald-500 text-white"
                     : isActive
                     ? `${step.color} border-transparent text-white`
-                    : 'border-slate-200 bg-slate-50 text-slate-400'
+                    : "border-slate-200 bg-slate-50 text-slate-400"
                 }`}
                       layout
                       transition={{
-                        type: 'spring',
+                        type: "spring",
                         stiffness: 260,
                         damping: 22,
                       }}
@@ -523,7 +523,7 @@ const BookingPage = () => {
                         <div
                           className={`h-[2px] rounded-full w-full 
                     ${
-                      currentStep > stepNumber ? 'bg-sky-400' : 'bg-slate-200'
+                      currentStep > stepNumber ? "bg-sky-400" : "bg-slate-200"
                     }`}
                         />
                       </div>
@@ -534,7 +534,7 @@ const BookingPage = () => {
                   <div className="mt-2 flex justify-center">
                     <span
                       className={`text-[12px] font-medium 
-                ${isActive ? 'text-slate-900' : 'text-slate-500'}`}
+                ${isActive ? "text-slate-900" : "text-slate-500"}`}
                     >
                       {step.title}
                     </span>
@@ -550,7 +550,7 @@ const BookingPage = () => {
           className="overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-slate-100"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
         >
           {/* Header kecil di dalam card, berubah tiap step */}
           <div className="bg-gradient-to-r from-sky-500 to-sky-600 px-5 py-4 text-white md:px-8">
@@ -568,9 +568,9 @@ const BookingPage = () => {
                   Langkah {currentStep} dari 3
                 </p>
                 <h2 className="text-base font-semibold sm:text-lg">
-                  {currentStep === 1 && 'Pilih Tanggal & Waktu'}
-                  {currentStep === 2 && 'Lengkapi Data Bayi'}
-                  {currentStep === 3 && 'Konfirmasi & Pembayaran'}
+                  {currentStep === 1 && "Pilih Tanggal & Waktu"}
+                  {currentStep === 2 && "Lengkapi Data Bayi"}
+                  {currentStep === 3 && "Konfirmasi & Pembayaran"}
                 </h2>
                 {service?.name && (
                   <p className="mt-0.5 text-xs text-sky-100/80">
@@ -614,29 +614,29 @@ const BookingPage = () => {
                             onClick={() => setSelectedDate(date)}
                             className={`flex flex-col items-center rounded-xl border-2 p-3 text-center text-xs font-medium sm:text-sm ${
                               isSelected
-                                ? 'border-sky-500 bg-sky-500 text-white shadow-lg'
-                                : 'border-slate-200 bg-white text-slate-700'
+                                ? "border-sky-500 bg-sky-500 text-white shadow-lg"
+                                : "border-slate-200 bg-white text-slate-700"
                             }`}
                             whileHover={{
                               y: isSelected ? 0 : -3,
                               boxShadow: isSelected
-                                ? '0 14px 30px rgba(56,189,248,0.35)'
-                                : '0 8px 20px rgba(148,163,184,0.25)',
+                                ? "0 14px 30px rgba(56,189,248,0.35)"
+                                : "0 8px 20px rgba(148,163,184,0.25)",
                             }}
                             whileTap={{ scale: 0.97 }}
                             transition={{ duration: 0.18 }}
                           >
                             <span className="text-[11px] uppercase tracking-wide text-slate-500">
-                              {dateObj.toLocaleDateString('id-ID', {
-                                weekday: 'short',
+                              {dateObj.toLocaleDateString("id-ID", {
+                                weekday: "short",
                               })}
                             </span>
                             <span className="text-lg font-semibold">
                               {dateObj.getDate()}
                             </span>
                             <span className="text-[11px] text-slate-500">
-                              {dateObj.toLocaleDateString('id-ID', {
-                                month: 'short',
+                              {dateObj.toLocaleDateString("id-ID", {
+                                month: "short",
                               })}
                             </span>
                           </motion.button>
@@ -667,12 +667,12 @@ const BookingPage = () => {
                 {selectedDate && !loading.sessions && (
                   <div className="rounded-2xl bg-sky-50/80 p-5 md:p-6">
                     <label className="mb-3 block text-sm font-semibold text-slate-800">
-                      🕐 Sesi Tersedia pada{' '}
+                      🕐 Sesi Tersedia pada{" "}
                       <span className="text-sky-700">
-                        {new Date(selectedDate).toLocaleDateString('id-ID', {
-                          weekday: 'long',
-                          day: 'numeric',
-                          month: 'long',
+                        {new Date(selectedDate).toLocaleDateString("id-ID", {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "long",
                         })}
                       </span>
                     </label>
@@ -690,8 +690,8 @@ const BookingPage = () => {
                             className="rounded-2xl border-2 border-transparent bg-white p-4 text-left shadow-sm"
                             whileHover={{
                               y: -3,
-                              boxShadow: '0 18px 40px rgba(8,47,73,0.20)',
-                              borderColor: 'rgba(56,189,248,1)',
+                              boxShadow: "0 18px 40px rgba(8,47,73,0.20)",
+                              borderColor: "rgba(56,189,248,1)",
                             }}
                             whileTap={{ scale: 0.97 }}
                             transition={{ duration: 0.18 }}
@@ -700,16 +700,16 @@ const BookingPage = () => {
                               <Clock className="mr-2 h-4 w-4 text-sky-500" />
                               <span className="text-base font-semibold text-slate-900">
                                 {new Date(
-                                  session.timeSlot.startTime,
-                                ).toLocaleTimeString('id-ID', {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
+                                  session.timeSlot.startTime
+                                ).toLocaleTimeString("id-ID", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
                                 })}
                               </span>
                             </div>
                             <div className="flex items-center text-xs text-slate-600">
                               <User className="mr-1.5 h-3.5 w-3.5 text-slate-400" />
-                              dengan{' '}
+                              dengan{" "}
                               <span className="ml-1 font-medium">
                                 {session.staff.name}
                               </span>
@@ -750,7 +750,7 @@ const BookingPage = () => {
                       👤 Nama Orang Tua
                     </label>
                     <input
-                      value={user?.name || ''}
+                      value={user?.name || ""}
                       readOnly
                       className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-600 shadow-inner"
                     />
@@ -773,33 +773,100 @@ const BookingPage = () => {
                     />
                   </div>
 
+                  {/* ===== [UPDATE DI SINI: INPUT TAHUN DAN BULAN] ===== */}
                   <div>
                     <label className="mb-2 block text-sm font-semibold text-slate-800">
-                      📅 Usia Bayi (dalam bulan) *
+                      📅 Usia Bayi *
                     </label>
-                    <input
-                      type="number"
-                      value={babyInfo.age}
-                      onChange={(e) =>
-                        setBabyInfo((prev) => ({
-                          ...prev,
-                          age: e.target.value,
-                        }))
-                      }
-                      placeholder="Contoh: 6"
-                      min={0}
-                      max={120}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-                    />
+                    <div className="flex gap-4">
+                      {/* INPUT TAHUN */}
+                      <div className="flex-1">
+                        <label className="mb-1 block text-xs text-slate-500">
+                          Tahun
+                        </label>
+                        <input
+                          type="number"
+                          min={0}
+                          placeholder="0"
+                          // Hitung tahun dari total bulan
+                          value={
+                            babyInfo.age
+                              ? Math.floor(parseInt(babyInfo.age) / 12)
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const newYear = parseInt(e.target.value) || 0;
+                            const currentTotalMonths =
+                              parseInt(babyInfo.age) || 0;
+                            const currentMonthsPart = currentTotalMonths % 12;
+
+                            // Kalkulasi ulang total bulan: (Tahun Baru * 12) + Bulan Saat Ini
+                            const newTotalMonths =
+                              newYear * 12 + currentMonthsPart;
+
+                            setBabyInfo((prev) => ({
+                              ...prev,
+                              age:
+                                newTotalMonths === 0
+                                  ? ""
+                                  : newTotalMonths.toString(),
+                            }));
+                          }}
+                          className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                        />
+                      </div>
+
+                      {/* INPUT BULAN */}
+                      <div className="flex-1">
+                        <label className="mb-1 block text-xs text-slate-500">
+                          Bulan
+                        </label>
+                        <input
+                          type="number"
+                          min={0}
+                          max={11} // Biasanya max 11 kalau sudah ada tahun, tapi optional
+                          placeholder="0"
+                          // Hitung sisa bulan dari total bulan
+                          value={
+                            babyInfo.age ? parseInt(babyInfo.age) % 12 : ""
+                          }
+                          onChange={(e) => {
+                            const newMonth = parseInt(e.target.value) || 0;
+                            const currentTotalMonths =
+                              parseInt(babyInfo.age) || 0;
+                            const currentYearPart = Math.floor(
+                              currentTotalMonths / 12
+                            );
+
+                            // Kalkulasi ulang total bulan: (Tahun Saat Ini * 12) + Bulan Baru
+                            const newTotalMonths =
+                              currentYearPart * 12 + newMonth;
+
+                            setBabyInfo((prev) => ({
+                              ...prev,
+                              age:
+                                newTotalMonths === 0
+                                  ? ""
+                                  : newTotalMonths.toString(),
+                            }));
+                          }}
+                          className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Helper text rentang usia */}
                     {ageRangeText && (
-                      <p className="mt-1 text-xs text-slate-500">
-                        Layanan ini direkomendasikan untuk bayi dengan usia{' '}
+                      <p className="mt-2 text-xs text-slate-500">
+                        Layanan ini direkomendasikan untuk usia{" "}
                         <span className="font-medium text-sky-700">
                           {ageRangeText}
                         </span>
-                        .
+                        . (Total: {babyInfo.age || 0} bulan)
                       </p>
                     )}
+
+                    {/* Error validation */}
                     {babyInfo.age && !isAgeValid && (
                       <p className="mt-2 text-xs font-medium text-red-600">
                         Usia bayi di luar rentang yang diperbolehkan untuk
@@ -807,6 +874,7 @@ const BookingPage = () => {
                       </p>
                     )}
                   </div>
+                  {/* ===== [AKHIR UPDATE] ===== */}
                 </div>
 
                 <motion.button
@@ -818,7 +886,7 @@ const BookingPage = () => {
                     !(!babyInfo.name || !babyInfo.age || !isAgeValid)
                       ? {
                           y: -2,
-                          boxShadow: '0 18px 40px rgba(16,185,129,0.35)',
+                          boxShadow: "0 18px 40px rgba(16,185,129,0.35)",
                         }
                       : {}
                   }
@@ -866,7 +934,7 @@ const BookingPage = () => {
                           <span className="font-medium text-slate-900">
                             {
                               service.priceTiers.find(
-                                (t) => t.id === selectedPriceTierId,
+                                (t) => t.id === selectedPriceTierId
                               )?.tierName
                             }
                           </span>
@@ -876,12 +944,12 @@ const BookingPage = () => {
                         <span className="text-slate-600">Tanggal:</span>
                         <span className="font-medium text-slate-900">
                           {new Date(
-                            selectedSession.timeSlot.startTime,
-                          ).toLocaleDateString('id-ID', {
-                            weekday: 'long',
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
+                            selectedSession.timeSlot.startTime
+                          ).toLocaleDateString("id-ID", {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
                           })}
                         </span>
                       </div>
@@ -889,10 +957,10 @@ const BookingPage = () => {
                         <span className="text-slate-600">Waktu:</span>
                         <span className="font-medium text-slate-900">
                           {new Date(
-                            selectedSession.timeSlot.startTime,
-                          ).toLocaleTimeString('id-ID', {
-                            hour: '2-digit',
-                            minute: '2-digit',
+                            selectedSession.timeSlot.startTime
+                          ).toLocaleTimeString("id-ID", {
+                            hour: "2-digit",
+                            minute: "2-digit",
                           })}
                         </span>
                       </div>
@@ -916,7 +984,7 @@ const BookingPage = () => {
                           Total Harga:
                         </span>
                         <span className="text-lg font-bold text-emerald-600">
-                          Rp {finalPrice.toLocaleString('id-ID')}
+                          Rp {finalPrice.toLocaleString("id-ID")}
                         </span>
                       </div>
                     </div>
@@ -936,15 +1004,15 @@ const BookingPage = () => {
                         onClick={() => setSelectedPayment(method.code)}
                         className={`flex items-center gap-3 rounded-2xl border-2 bg-white p-4 text-left text-sm ${
                           selectedPayment === method.code
-                            ? 'border-purple-500 shadow-lg ring-2 ring-purple-200'
-                            : 'border-slate-200'
+                            ? "border-purple-500 shadow-lg ring-2 ring-purple-200"
+                            : "border-slate-200"
                         }`}
                         whileHover={{
                           y: selectedPayment === method.code ? -1 : -3,
                           boxShadow:
                             selectedPayment === method.code
-                              ? '0 18px 40px rgba(126,34,206,0.35)'
-                              : '0 14px 30px rgba(148,163,184,0.25)',
+                              ? "0 18px 40px rgba(126,34,206,0.35)"
+                              : "0 14px 30px rgba(148,163,184,0.25)",
                         }}
                         whileTap={{ scale: 0.97 }}
                         transition={{ duration: 0.18 }}
@@ -982,7 +1050,7 @@ const BookingPage = () => {
                     !(!selectedPayment || loading.submit)
                       ? {
                           y: -2,
-                          boxShadow: '0 20px 44px rgba(88,28,135,0.45)',
+                          boxShadow: "0 20px 44px rgba(88,28,135,0.45)",
                         }
                       : {}
                   }
