@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Loader2,
   AlertTriangle,
@@ -6,17 +6,17 @@ import {
   ArrowRight,
   Clock,
   User,
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useCustomerReservations } from '../hooks/useCustomerHooks';
-import type { Reservation } from '../types';
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { useCustomerReservations } from "../hooks/useCustomerHooks";
+import type { Reservation } from "../types";
 
 /**
  * Mapping status → label & style (lebih subtle, bukan blok warna besar)
  */
 const STATUS_CONFIG: Record<
-  Reservation['status'],
+  Reservation["status"],
   {
     label: string;
     dotClass: string;
@@ -24,34 +24,34 @@ const STATUS_CONFIG: Record<
   }
 > = {
   PENDING: {
-    label: 'Menunggu pembayaran',
-    dotClass: 'bg-amber-400',
-    chipClass: 'border-amber-300 text-amber-700 bg-amber-50/60',
+    label: "Menunggu pembayaran",
+    dotClass: "bg-amber-400",
+    chipClass: "border-amber-300 text-amber-700 bg-amber-50/60",
   },
   CONFIRMED: {
-    label: 'Terkonfirmasi',
-    dotClass: 'bg-sky-500',
-    chipClass: 'border-sky-300 text-sky-700 bg-sky-50/70',
+    label: "Terkonfirmasi",
+    dotClass: "bg-sky-500",
+    chipClass: "border-sky-300 text-sky-700 bg-sky-50/70",
   },
   IN_PROGRESS: {
-    label: 'Sedang berlangsung',
-    dotClass: 'bg-indigo-500',
-    chipClass: 'border-indigo-300 text-indigo-700 bg-indigo-50/70',
+    label: "Sedang berlangsung",
+    dotClass: "bg-indigo-500",
+    chipClass: "border-indigo-300 text-indigo-700 bg-indigo-50/70",
   },
   COMPLETED: {
-    label: 'Selesai',
-    dotClass: 'bg-emerald-500',
-    chipClass: 'border-emerald-300 text-emerald-700 bg-emerald-50/60',
+    label: "Selesai",
+    dotClass: "bg-emerald-500",
+    chipClass: "border-emerald-300 text-emerald-700 bg-emerald-50/60",
   },
   CANCELLED: {
-    label: 'Dibatalkan',
-    dotClass: 'bg-rose-500',
-    chipClass: 'border-rose-300 text-rose-700 bg-rose-50/70',
+    label: "Dibatalkan",
+    dotClass: "bg-rose-500",
+    chipClass: "border-rose-300 text-rose-700 bg-rose-50/70",
   },
   EXPIRED: {
-    label: 'Kedaluwarsa',
-    dotClass: 'bg-slate-400',
-    chipClass: 'border-slate-300 text-slate-600 bg-slate-50/80',
+    label: "Kedaluwarsa",
+    dotClass: "bg-slate-400",
+    chipClass: "border-slate-300 text-slate-600 bg-slate-50/80",
   },
 };
 
@@ -64,19 +64,19 @@ const ReservationCard = ({ reservation }: { reservation: Reservation }) => {
 
   const startTime = reservation.session?.timeSlot?.startTime;
   const formattedDate = new Date(startTime || Date.now()).toLocaleString(
-    'id-ID',
+    "id-ID",
     {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    },
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }
   );
 
-  const shortId = reservation.id.slice(0, 8) + '…';
-  const isPending = reservation.status === 'PENDING';
+  const shortId = reservation.id.slice(0, 8) + "…";
+  const isPending = reservation.status === "PENDING";
 
   const goDetail = () => navigate(`/dashboard/reservations/${reservation.id}`);
 
@@ -87,10 +87,10 @@ const ReservationCard = ({ reservation }: { reservation: Reservation }) => {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -6 }}
-      transition={{ duration: 0.22, ease: 'easeOut' }}
+      transition={{ duration: 0.22, ease: "easeOut" }}
       whileHover={{
         y: -2,
-        boxShadow: '0 18px 40px rgba(15,23,42,0.12)',
+        boxShadow: "0 18px 40px rgba(15,23,42,0.12)",
       }}
       whileTap={{ scale: 0.99 }}
       className="group relative cursor-pointer overflow-hidden rounded-2xl bg-white/95 px-4 py-4 shadow-sm ring-1 ring-slate-100 md:px-5 md:py-4"
@@ -108,13 +108,13 @@ const ReservationCard = ({ reservation }: { reservation: Reservation }) => {
                 Layanan
               </p>
               <h3 className="mt-0.5 text-sm font-semibold text-slate-900 md:text-base">
-                {reservation.service?.name || 'Layanan tidak diketahui'}
+                {reservation.service?.name || "Layanan tidak diketahui"}
               </h3>
             </div>
 
             <div className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium shadow-[0_0_0_1px_rgba(255,255,255,0.9)] backdrop-blur">
               <span className={`h-1.5 w-1.5 rounded-full ${cfg.dotClass}`} />
-              <span className={cfg.chipClass + ' rounded-full px-1 py-0.5'}>
+              <span className={cfg.chipClass + " rounded-full px-1 py-0.5"}>
                 {cfg.label}
               </span>
             </div>
@@ -140,7 +140,7 @@ const ReservationCard = ({ reservation }: { reservation: Reservation }) => {
             <div className="inline-flex items-center gap-1.5">
               <User className="h-3.5 w-3.5 text-slate-400" />
               <span>
-                Bayi:{' '}
+                Bayi:{" "}
                 <span className="font-medium">
                   {reservation.babyName} ({reservation.babyAge} bln)
                 </span>
@@ -149,9 +149,9 @@ const ReservationCard = ({ reservation }: { reservation: Reservation }) => {
             <div className="inline-flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-slate-400" />
               <span>
-                Terapis:{' '}
+                Terapis:{" "}
                 <span className="font-medium">
-                  {reservation.staff?.name || 'Belum ditentukan'}
+                  {reservation.staff?.name || "Belum ditentukan"}
                 </span>
               </span>
             </div>
@@ -168,11 +168,11 @@ const ReservationCard = ({ reservation }: { reservation: Reservation }) => {
             }}
             className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-semibold transition-all md:text-xs ${
               isPending
-                ? 'bg-sky-500 text-white shadow-sm hover:bg-sky-600'
-                : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                ? "bg-sky-500 text-white shadow-sm hover:bg-sky-600"
+                : "bg-slate-50 text-slate-700 hover:bg-slate-100"
             }`}
           >
-            <span>{isPending ? 'Bayar & detail' : 'Lihat detail'}</span>
+            <span>{isPending ? "Bayar & detail" : "Lihat detail"}</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </button>
         </div>
@@ -185,7 +185,7 @@ const ReservationCard = ({ reservation }: { reservation: Reservation }) => {
  * Halaman list reservasi
  */
 const CustomerReservations = () => {
-  const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
+  const [filter, setFilter] = useState<"upcoming" | "past">("upcoming");
 
   const {
     data: reservations,
@@ -195,9 +195,9 @@ const CustomerReservations = () => {
   } = useCustomerReservations(filter);
 
   const activeTabClass =
-    'bg-sky-500 text-white shadow-sm shadow-sky-300 scale-[1.02]';
+    "bg-sky-500 text-white shadow-sm shadow-sky-300 scale-[1.02]";
   const inactiveTabClass =
-    'bg-white/80 text-slate-600 hover:bg-sky-50 hover:text-sky-800';
+    "bg-white/80 text-slate-600 hover:bg-sky-50 hover:text-sky-800";
 
   return (
     <div className="pb-8 pt-2 md:pt-4">
@@ -221,9 +221,9 @@ const CustomerReservations = () => {
         <div className="inline-flex rounded-full bg-slate-100/80 p-1">
           <button
             type="button"
-            onClick={() => setFilter('upcoming')}
+            onClick={() => setFilter("upcoming")}
             className={`flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-semibold transition-all md:text-sm ${
-              filter === 'upcoming' ? activeTabClass : inactiveTabClass
+              filter === "upcoming" ? activeTabClass : inactiveTabClass
             }`}
           >
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
@@ -231,9 +231,9 @@ const CustomerReservations = () => {
           </button>
           <button
             type="button"
-            onClick={() => setFilter('past')}
+            onClick={() => setFilter("past")}
             className={`flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-semibold transition-all md:text-sm ${
-              filter === 'past' ? activeTabClass : inactiveTabClass
+              filter === "past" ? activeTabClass : inactiveTabClass
             }`}
           >
             <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
@@ -291,7 +291,7 @@ const CustomerReservations = () => {
           <motion.div
             layout
             className="space-y-4"
-            transition={{ layout: { duration: 0.25, ease: 'easeOut' } }}
+            transition={{ layout: { duration: 0.25, ease: "easeOut" } }}
           >
             {reservations.map((res) => (
               <ReservationCard key={res.id} reservation={res} />

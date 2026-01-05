@@ -1,9 +1,9 @@
 // src/pages/CustomerDashboard.tsx
-import { Link } from 'react-router-dom';
-import { CalendarPlus, Loader2, AlertTriangle, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { useAuth } from '../hooks/useAuth';
-import { useCustomerReservations } from '../hooks/useCustomerHooks';
+import { Link } from "react-router-dom";
+import { CalendarPlus, Loader2, AlertTriangle, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { useAuth } from "../hooks/useAuth";
+import { useCustomerReservations } from "../hooks/useCustomerHooks";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 10 },
@@ -13,7 +13,7 @@ const fadeInUp = {
     transition: {
       delay: 0.08 * i,
       duration: 0.35,
-      ease: 'easeOut',
+      ease: "easeOut",
     },
   }),
 };
@@ -26,7 +26,7 @@ const CustomerDashboard = () => {
     data: upcomingReservations,
     isLoading: isLoadingUpcoming,
     isError: isErrorUpcoming,
-  } = useCustomerReservations('upcoming');
+  } = useCustomerReservations("upcoming");
 
   // all reservations
   const {
@@ -42,13 +42,13 @@ const CustomerDashboard = () => {
   const totalReservationsCount = allReservations?.length ?? 0;
   const nextReservation = upcomingReservations?.[0];
 
-  const displayName = user?.name?.split(' ')[0] ?? user?.name ?? 'Bunda';
+  const displayName = user?.name?.split(" ")[0] ?? user?.name ?? "Bunda";
 
   const formatDateTime = (iso?: string | null) => {
-    if (!iso) return '-';
-    return new Date(iso).toLocaleString('id-ID', {
-      dateStyle: 'full',
-      timeStyle: 'short',
+    if (!iso) return "-";
+    return new Date(iso).toLocaleString("id-ID", {
+      dateStyle: "full",
+      timeStyle: "short",
     });
   };
 
@@ -105,7 +105,7 @@ const CustomerDashboard = () => {
           custom={1}
           whileHover={{
             y: -3,
-            boxShadow: '0 18px 45px rgba(56,189,248,0.20)',
+            boxShadow: "0 18px 45px rgba(56,189,248,0.20)",
           }}
           transition={{ duration: 0.22 }}
         >
@@ -130,7 +130,7 @@ const CustomerDashboard = () => {
           custom={2}
           whileHover={{
             y: -3,
-            boxShadow: '0 18px 45px rgba(56,189,248,0.20)',
+            boxShadow: "0 18px 45px rgba(56,189,248,0.20)",
           }}
           transition={{ duration: 0.22 }}
         >
@@ -161,7 +161,7 @@ const CustomerDashboard = () => {
         className="mx-auto max-w-6xl px-4 pb-16 pt-6 sm:px-6 lg:px-8 lg:pt-10"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
       >
         {/* HEADER */}
         <motion.header
@@ -175,7 +175,7 @@ const CustomerDashboard = () => {
               Dashboard pelanggan
             </p>
             <h1 className="mt-2 text-balance text-2xl font-semibold text-slate-900 sm:text-3xl">
-              Selamat datang kembali,{' '}
+              Selamat datang kembali,{" "}
               <span className="bg-gradient-to-r from-sky-600 to-sky-800 bg-clip-text text-transparent">
                 {displayName}
               </span>
@@ -190,13 +190,13 @@ const CustomerDashboard = () => {
             <div className="flex flex-col">
               <span className="font-semibold text-sky-700">
                 {upcomingReservationsCount > 0
-                  ? 'Anda punya jadwal yang akan datang'
-                  : 'Belum ada jadwal spa berikutnya'}
+                  ? "Anda punya jadwal yang akan datang"
+                  : "Belum ada jadwal spa berikutnya"}
               </span>
               <span className="text-[11px] text-slate-500">
                 {upcomingReservationsCount > 0
-                  ? 'Pastikan datang tepat waktu untuk pengalaman terbaik.'
-                  : 'Yuk mulai reservasi pertama hari ini.'}
+                  ? "Pastikan datang tepat waktu untuk pengalaman terbaik."
+                  : "Yuk mulai reservasi pertama hari ini."}
               </span>
             </div>
           </div>
@@ -289,21 +289,21 @@ const CustomerDashboard = () => {
                       </p>
                       <h3 className="text-lg font-semibold text-slate-900">
                         {nextReservation.service?.name ||
-                          'Layanan Tidak Diketahui'}
+                          "Layanan Tidak Diketahui"}
                       </h3>
                       <p className="flex items-center gap-2 text-sm text-slate-600">
                         <CalendarPlus className="h-4 w-4 text-sky-500" />
                         <span>
                           {formatDateTime(
-                            nextReservation.session?.timeSlot?.startTime,
+                            nextReservation.session?.timeSlot?.startTime
                           )}
                         </span>
                       </p>
                       <p className="text-xs text-slate-500">
-                        Terapis:{' '}
+                        Terapis:{" "}
                         <span className="font-medium text-slate-700">
                           {nextReservation.staff?.name ||
-                            'Terapis belum ditentukan'}
+                            "Terapis belum ditentukan"}
                         </span>
                       </p>
                     </div>
