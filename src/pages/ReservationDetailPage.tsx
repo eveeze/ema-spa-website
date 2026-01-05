@@ -1,5 +1,3 @@
-// src/pages/ReservationDetailPage.tsx
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -24,7 +22,7 @@ import {
 import { Reservation, Payment } from "../types";
 
 /* -------------------------------------------------------------------------- */
-/* RATING MODAL (UI) - TIDAK ADA PERUBAHAN                                    */
+/* RATING MODAL (UI)                                                          */
 /* -------------------------------------------------------------------------- */
 
 interface RatingModalProps {
@@ -166,7 +164,7 @@ const RatingModal = ({
 };
 
 /* -------------------------------------------------------------------------- */
-/* RESCHEDULE MODAL (UI) - TIDAK ADA PERUBAHAN                                */
+/* RESCHEDULE MODAL (UI)                                                      */
 /* -------------------------------------------------------------------------- */
 
 interface RescheduleModalProps {
@@ -381,7 +379,7 @@ const RescheduleModal = ({
 };
 
 /* -------------------------------------------------------------------------- */
-/* HALAMAN DETAIL RESERVASI - DIPERBAIKI                                      */
+/* HALAMAN DETAIL RESERVASI                                                   */
 /* -------------------------------------------------------------------------- */
 
 const ReservationDetailPage = () => {
@@ -392,7 +390,6 @@ const ReservationDetailPage = () => {
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [, setRescheduleError] = useState<string | null>(null);
 
-  // KEMBALIKAN KE LOGIKA SIMPEL (Hapus fetchStatus)
   const {
     data: reservation,
     isLoading: isLoadingReservation,
@@ -413,9 +410,7 @@ const ReservationDetailPage = () => {
   const { mutate: submitReschedule, isPending: isRescheduling } =
     useRescheduleReservation();
 
-  // FIX: Loading hanya jika data sedang diambil.
-  // Jangan pakai 'idle' karena hook sudah punya 'enabled: !!token'
-  // yang artinya dia akan diam dulu, lalu fetch otomatis.
+  // Logika standar seperti di Profile Page (tanpa fetchStatus)
   const isLoading = isLoadingReservation || isLoadingPayment;
   const isError = isErrorReservation || isErrorPayment;
 
@@ -535,8 +530,6 @@ const ReservationDetailPage = () => {
     ["PENDING", "CONFIRMED"].includes(reservation?.status ?? "") &&
     (reservation?.rescheduleCount ?? 0) < 2;
 
-  /* ----------------------------- LOADING / ERROR ---------------------------- */
-
   if (!reservationId) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-sky-50 via-white to-sky-50 px-4">
@@ -640,7 +633,6 @@ const ReservationDetailPage = () => {
 
         <div className="mx-auto flex max-w-5xl flex-col gap-6 lg:flex-row">
           <div className="flex-1 space-y-6">
-            {/* CARD RINGKASAN */}
             <motion.div
               className={`rounded-3xl bg-white/95 p-6 shadow-xl shadow-sky-100/70 ring-1 ${currentReservationStatus.borderColor}`}
               initial={{ opacity: 0, y: 10 }}
@@ -733,7 +725,6 @@ const ReservationDetailPage = () => {
               </div>
             </motion.div>
 
-            {/* CARD JADWAL */}
             <motion.div
               className="rounded-3xl bg-white/95 p-6 shadow-xl shadow-slate-100/70 ring-1 ring-slate-100"
               initial={{ opacity: 0, y: 10 }}
@@ -781,7 +772,6 @@ const ReservationDetailPage = () => {
               </div>
             </motion.div>
 
-            {/* ULASAN */}
             {reservation.status === "COMPLETED" && (
               <motion.div
                 className="rounded-3xl bg-white/95 p-6 shadow-xl shadow-amber-50/80 ring-1 ring-amber-100"
@@ -832,7 +822,6 @@ const ReservationDetailPage = () => {
             )}
           </div>
 
-          {/* KOLOM KANAN: Pembayaran */}
           <motion.div
             className="w-full max-w-md space-y-4 lg:w-80"
             initial={{ opacity: 0, y: 10 }}

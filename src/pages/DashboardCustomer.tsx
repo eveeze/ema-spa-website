@@ -1,4 +1,3 @@
-// src/pages/CustomerDashboard.tsx
 import { Link } from "react-router-dom";
 import { CalendarPlus, Loader2, AlertTriangle, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
@@ -21,21 +20,20 @@ const fadeInUp = {
 const CustomerDashboard = () => {
   const { user } = useAuth();
 
-  // upcoming only
+  // Ambil data tanpa logika aneh-aneh
   const {
     data: upcomingReservations,
     isLoading: isLoadingUpcoming,
     isError: isErrorUpcoming,
   } = useCustomerReservations("upcoming");
 
-  // all reservations
   const {
     data: allReservations,
     isLoading: isLoadingAll,
     isError: isErrorAll,
   } = useCustomerReservations();
 
-  // KEMBALI KE LOGIKA STANDAR (Hapus fetchStatus idle)
+  // Logika standar seperti di Profile Page
   const isLoading = isLoadingUpcoming || isLoadingAll;
   const isError = isErrorUpcoming || isErrorAll;
 
@@ -64,9 +62,9 @@ const CustomerDashboard = () => {
               variants={fadeInUp}
               custom={index + 1}
             >
-              <div className="mb-4 h-4 w-2/3 rounded-full bg-slate-100" />
-              <div className="mb-3 h-8 w-1/3 rounded-full bg-slate-100" />
-              <div className="h-3 w-full rounded-full bg-slate-100" />
+              <div className="mb-4 h-4 w-2/3 animate-pulse rounded-full bg-slate-100" />
+              <div className="mb-3 h-8 w-1/3 animate-pulse rounded-full bg-slate-100" />
+              <div className="h-3 w-full animate-pulse rounded-full bg-slate-100" />
             </motion.div>
           ))}
         </>
