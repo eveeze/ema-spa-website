@@ -35,6 +35,7 @@ const CustomerDashboard = () => {
     isError: isErrorAll,
   } = useCustomerReservations();
 
+  // KEMBALI KE LOGIKA STANDAR (Hapus fetchStatus idle)
   const isLoading = isLoadingUpcoming || isLoadingAll;
   const isError = isErrorUpcoming || isErrorAll;
 

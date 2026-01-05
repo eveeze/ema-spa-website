@@ -1,7 +1,7 @@
 // src/pages/ReservationDetailPage.tsx
 
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Loader2,
   AlertTriangle,
@@ -12,19 +12,19 @@ import {
   X,
   Edit,
   ArrowRight,
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   useCustomerReservationById,
   usePaymentDetails,
   useCreateOnlineRating,
   useRescheduleReservation,
   useAvailableSchedule,
-} from '../hooks/useCustomerHooks';
-import { Reservation, Payment } from '../types';
+} from "../hooks/useCustomerHooks";
+import { Reservation, Payment } from "../types";
 
 /* -------------------------------------------------------------------------- */
-/*                             RATING MODAL (UI)                              */
+/* RATING MODAL (UI) - TIDAK ADA PERUBAHAN                                    */
 /* -------------------------------------------------------------------------- */
 
 interface RatingModalProps {
@@ -42,17 +42,17 @@ const RatingModal = ({
 }: RatingModalProps) => {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const [comment, setComment] = useState('');
-  const [error, setError] = useState('');
+  const [comment, setComment] = useState("");
+  const [error, setError] = useState("");
 
   if (!isOpen) return null;
 
   const handleSubmit = () => {
     if (rating === 0) {
-      setError('Rating bintang wajib diisi.');
+      setError("Rating bintang wajib diisi.");
       return;
     }
-    setError('');
+    setError("");
     onSubmit(rating, comment);
   };
 
@@ -71,7 +71,7 @@ const RatingModal = ({
             initial={{ opacity: 0, y: 16, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.96 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
             className="mx-4 w-full max-w-md rounded-3xl bg-white/95 p-6 shadow-xl shadow-amber-100/70 ring-1 ring-slate-100"
           >
             <div className="mb-4 flex items-start justify-between gap-3">
@@ -110,8 +110,8 @@ const RatingModal = ({
                     <Star
                       className="transition-transform duration-150 group-hover:scale-110"
                       size={34}
-                      color={active ? '#f59e0b' : '#e5e7eb'}
-                      fill={active ? '#f59e0b' : 'none'}
+                      color={active ? "#f59e0b" : "#e5e7eb"}
+                      fill={active ? "#f59e0b" : "none"}
                     />
                   </button>
                 );
@@ -166,7 +166,7 @@ const RatingModal = ({
 };
 
 /* -------------------------------------------------------------------------- */
-/*                          RESCHEDULE MODAL (UI)                             */
+/* RESCHEDULE MODAL (UI) - TIDAK ADA PERUBAHAN                                */
 /* -------------------------------------------------------------------------- */
 
 interface RescheduleModalProps {
@@ -181,11 +181,11 @@ const RescheduleModal = ({
   isOpen,
   onClose,
   onSubmit,
-  isSubmitting, // disiapkan kalau nanti mau dipakai filter durasi
+  isSubmitting,
 }: RescheduleModalProps) => {
-  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState("");
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
-    null,
+    null
   );
 
   const {
@@ -194,10 +194,9 @@ const RescheduleModal = ({
     isError: isErrorSlots,
   } = useAvailableSchedule(selectedDate || null);
 
-  // Reset ketika modal ditutup
   useEffect(() => {
     if (!isOpen) {
-      setSelectedDate('');
+      setSelectedDate("");
       setSelectedSessionId(null);
     }
   }, [isOpen]);
@@ -218,7 +217,7 @@ const RescheduleModal = ({
           ...session,
           startTime: slot.startTime,
           endTime: slot.endTime,
-        })),
+        }))
     ) || [];
 
   return (
@@ -236,10 +235,10 @@ const RescheduleModal = ({
             initial={{ opacity: 0, y: 18, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 18, scale: 0.96 }}
-            transition={{ duration: 0.22, ease: 'easeOut' }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
             className="mx-4 flex w-full max-w-lg max-h-[90vh] flex-col overflow-hidden rounded-3xl bg-white/95 shadow-xl shadow-sky-100/80 ring-1 ring-slate-100"
           >
-            <div className="border-b border-slate-100 bg-gradient-to-r from-sky-500 to-sky-600 px  -5 px-5 py-4 text-white">
+            <div className="border-b border-slate-100 bg-gradient-to-r from-sky-500 to-sky-600 px-5 py-4 text-white">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-sky-100">
@@ -262,7 +261,6 @@ const RescheduleModal = ({
             </div>
 
             <div className="flex-1 space-y-4 overflow-y-auto px-5 pb-4 pt-4">
-              {/* Tanggal */}
               <div>
                 <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                   Pilih tanggal baru
@@ -271,7 +269,7 @@ const RescheduleModal = ({
                   type="date"
                   className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
                   value={selectedDate}
-                  min={new Date().toISOString().split('T')[0]}
+                  min={new Date().toISOString().split("T")[0]}
                   onChange={(e) => {
                     setSelectedDate(e.target.value);
                     setSelectedSessionId(null);
@@ -282,7 +280,6 @@ const RescheduleModal = ({
                 </p>
               </div>
 
-              {/* Sesi */}
               {selectedDate && (
                 <div>
                   <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
@@ -310,20 +307,20 @@ const RescheduleModal = ({
                           onClick={() => setSelectedSessionId(session.id)}
                           className={`flex w-full items-center justify-between rounded-2xl border px-3 py-2 text-left text-xs shadow-sm transition-all ${
                             selectedSessionId === session.id
-                              ? 'border-sky-500 bg-white text-sky-800 shadow-md'
-                              : 'border-transparent bg-white/80 text-slate-700 hover:border-sky-200 hover:bg-white'
+                              ? "border-sky-500 bg-white text-sky-800 shadow-md"
+                              : "border-transparent bg-white/80 text-slate-700 hover:border-sky-200 hover:bg-white"
                           }`}
                         >
                           <div className="flex items-center gap-2">
                             <Clock className="h-3.5 w-3.5 text-sky-500" />
                             <span className="font-semibold">
                               {new Date(session.startTime).toLocaleTimeString(
-                                'id-ID',
+                                "id-ID",
                                 {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                  timeZone: 'Asia/Jakarta',
-                                },
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  timeZone: "Asia/Jakarta",
+                                }
                               )}
                             </span>
                           </div>
@@ -345,12 +342,12 @@ const RescheduleModal = ({
                 </p>
                 <ul className="mt-1 list-inside list-disc space-y-1">
                   <li>
-                    Perubahan jadwal hanya dapat dilakukan maksimal{' '}
+                    Perubahan jadwal hanya dapat dilakukan maksimal{" "}
                     <span className="font-semibold">24 jam</span> sebelum waktu
                     reservasi.
                   </li>
                   <li>
-                    Maksimal perubahan jadwal adalah{' '}
+                    Maksimal perubahan jadwal adalah{" "}
                     <span className="font-semibold">2 kali</span>.
                   </li>
                 </ul>
@@ -384,7 +381,7 @@ const RescheduleModal = ({
 };
 
 /* -------------------------------------------------------------------------- */
-/*                           HALAMAN DETAIL RESERVASI                         */
+/* HALAMAN DETAIL RESERVASI - DIPERBAIKI                                      */
 /* -------------------------------------------------------------------------- */
 
 const ReservationDetailPage = () => {
@@ -395,6 +392,7 @@ const ReservationDetailPage = () => {
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [, setRescheduleError] = useState<string | null>(null);
 
+  // KEMBALIKAN KE LOGIKA SIMPEL (Hapus fetchStatus)
   const {
     data: reservation,
     isLoading: isLoadingReservation,
@@ -415,6 +413,9 @@ const ReservationDetailPage = () => {
   const { mutate: submitReschedule, isPending: isRescheduling } =
     useRescheduleReservation();
 
+  // FIX: Loading hanya jika data sedang diambil.
+  // Jangan pakai 'idle' karena hook sudah punya 'enabled: !!token'
+  // yang artinya dia akan diam dulu, lalu fetch otomatis.
   const isLoading = isLoadingReservation || isLoadingPayment;
   const isError = isErrorReservation || isErrorPayment;
 
@@ -424,8 +425,8 @@ const ReservationDetailPage = () => {
       { reservationId, rating, comment },
       {
         onSuccess: () => setIsRatingModalOpen(false),
-        onError: (err) => console.error('Gagal mengirim rating:', err),
-      },
+        onError: (err) => console.error("Gagal mengirim rating:", err),
+      }
     );
   };
 
@@ -438,100 +439,100 @@ const ReservationDetailPage = () => {
       {
         onSuccess: () => {
           setIsRescheduleModalOpen(false);
-          alert('Jadwal berhasil diubah!');
+          alert("Jadwal berhasil diubah!");
         },
         onError: (err: unknown) => {
-          console.error('Gagal reschedule:', err);
+          console.error("Gagal reschedule:", err);
           const errorMessage =
-            typeof err === 'object' &&
+            typeof err === "object" &&
             err !== null &&
-            'response' in err &&
+            "response" in err &&
             (err as any).response?.data?.message
               ? (err as any).response.data.message
-              : 'Gagal mengubah jadwal. Silakan coba lagi.';
+              : "Gagal mengubah jadwal. Silakan coba lagi.";
           setRescheduleError(errorMessage);
           alert(errorMessage);
         },
-      },
+      }
     );
   };
 
   const reservationStatusInfo: Record<
-    Reservation['status'],
+    Reservation["status"],
     { text: string; color: string; borderColor: string; chipBg: string }
   > = {
     PENDING: {
-      text: 'Menunggu Konfirmasi',
-      color: 'text-amber-800',
-      borderColor: 'border-amber-300',
-      chipBg: 'bg-amber-50',
+      text: "Menunggu Konfirmasi",
+      color: "text-amber-800",
+      borderColor: "border-amber-300",
+      chipBg: "bg-amber-50",
     },
     CONFIRMED: {
-      text: 'Terkonfirmasi',
-      color: 'text-sky-800',
-      borderColor: 'border-sky-300',
-      chipBg: 'bg-sky-50',
+      text: "Terkonfirmasi",
+      color: "text-sky-800",
+      borderColor: "border-sky-300",
+      chipBg: "bg-sky-50",
     },
     IN_PROGRESS: {
-      text: 'Sedang Berlangsung',
-      color: 'text-indigo-800',
-      borderColor: 'border-indigo-300',
-      chipBg: 'bg-indigo-50',
+      text: "Sedang Berlangsung",
+      color: "text-indigo-800",
+      borderColor: "border-indigo-300",
+      chipBg: "bg-indigo-50",
     },
     COMPLETED: {
-      text: 'Selesai',
-      color: 'text-emerald-800',
-      borderColor: 'border-emerald-300',
-      chipBg: 'bg-emerald-50',
+      text: "Selesai",
+      color: "text-emerald-800",
+      borderColor: "border-emerald-300",
+      chipBg: "bg-emerald-50",
     },
     CANCELLED: {
-      text: 'Dibatalkan',
-      color: 'text-red-800',
-      borderColor: 'border-red-300',
-      chipBg: 'bg-red-50',
+      text: "Dibatalkan",
+      color: "text-red-800",
+      borderColor: "border-red-300",
+      chipBg: "bg-red-50",
     },
     EXPIRED: {
-      text: 'Kadaluwarsa',
-      color: 'text-slate-700',
-      borderColor: 'border-slate-300',
-      chipBg: 'bg-slate-50',
+      text: "Kadaluwarsa",
+      color: "text-slate-700",
+      borderColor: "border-slate-300",
+      chipBg: "bg-slate-50",
     },
   };
 
   const paymentStatusInfo: Record<
-    Payment['status'],
+    Payment["status"],
     { text: string; color: string }
   > = {
-    PENDING: { text: 'Menunggu Pembayaran', color: 'text-amber-600' },
-    PAID: { text: 'Sudah Dibayar', color: 'text-emerald-600' },
-    FAILED: { text: 'Gagal', color: 'text-red-600' },
-    EXPIRED: { text: 'Kadaluwarsa', color: 'text-slate-600' },
-    REFUNDED: { text: 'Dikembalikan', color: 'text-indigo-600' },
+    PENDING: { text: "Menunggu Pembayaran", color: "text-amber-600" },
+    PAID: { text: "Sudah Dibayar", color: "text-emerald-600" },
+    FAILED: { text: "Gagal", color: "text-red-600" },
+    EXPIRED: { text: "Kadaluwarsa", color: "text-slate-600" },
+    REFUNDED: { text: "Dikembalikan", color: "text-indigo-600" },
   };
 
   const formatDateTime = (isoString: string | null | undefined) => {
-    if (!isoString) return 'N/A';
-    return new Date(isoString).toLocaleString('id-ID', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    if (!isoString) return "N/A";
+    return new Date(isoString).toLocaleString("id-ID", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const formatCurrency = (amount: number | null | undefined) => {
-    if (amount == null) return 'Rp N/A';
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
+    if (amount == null) return "Rp N/A";
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
       minimumFractionDigits: 0,
     }).format(amount);
   };
 
   const canReschedule =
-    ['PENDING', 'CONFIRMED'].includes(reservation?.status ?? '') &&
+    ["PENDING", "CONFIRMED"].includes(reservation?.status ?? "") &&
     (reservation?.rescheduleCount ?? 0) < 2;
 
   /* ----------------------------- LOADING / ERROR ---------------------------- */
@@ -574,8 +575,8 @@ const ReservationDetailPage = () => {
           <p className="text-sm text-red-600">
             {reservationError?.message ||
               paymentError?.message ||
-              '' ||
-              'Terjadi kesalahan saat mengambil data.'}
+              "" ||
+              "Terjadi kesalahan saat mengambil data."}
           </p>
           <button
             onClick={() => navigate(-1)}
@@ -613,7 +614,7 @@ const ReservationDetailPage = () => {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: 'easeOut' }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
         className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-sky-50 px-4 pb-10 pt-6 sm:px-6 lg:px-8"
       >
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 pb-4">
@@ -638,7 +639,6 @@ const ReservationDetailPage = () => {
         </div>
 
         <div className="mx-auto flex max-w-5xl flex-col gap-6 lg:flex-row">
-          {/* KOLOM KIRI: Ringkasan + Jadwal + Ulasan */}
           <div className="flex-1 space-y-6">
             {/* CARD RINGKASAN */}
             <motion.div
@@ -650,10 +650,10 @@ const ReservationDetailPage = () => {
               <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h2 className="text-lg font-semibold text-slate-900">
-                    {reservation.service?.name || 'Layanan Tidak Diketahui'}
+                    {reservation.service?.name || "Layanan Tidak Diketahui"}
                   </h2>
                   <p className="mt-1 text-xs text-slate-500">
-                    ID Reservasi:{' '}
+                    ID Reservasi:{" "}
                     <span className="font-mono text-[11px]">
                       {reservation.id}
                     </span>
@@ -685,11 +685,11 @@ const ReservationDetailPage = () => {
                     Data bayi
                   </p>
                   <p>
-                    <span className="font-medium">Nama:</span>{' '}
+                    <span className="font-medium">Nama:</span>{" "}
                     {reservation.babyName}
                   </p>
                   <p>
-                    <span className="font-medium">Usia:</span>{' '}
+                    <span className="font-medium">Usia:</span>{" "}
                     {reservation.babyAge} bulan
                   </p>
                 </div>
@@ -698,14 +698,14 @@ const ReservationDetailPage = () => {
                     Orang tua & terapis
                   </p>
                   <p>
-                    <span className="font-medium">Orang tua:</span>{' '}
+                    <span className="font-medium">Orang tua:</span>{" "}
                     {reservation.parentNames ||
                       reservation.customer?.name ||
-                      'N/A'}
+                      "N/A"}
                   </p>
                   <p>
-                    <span className="font-medium">Terapis:</span>{' '}
-                    {reservation.staff?.name || 'N/A'}
+                    <span className="font-medium">Terapis:</span>{" "}
+                    {reservation.staff?.name || "N/A"}
                   </p>
                 </div>
                 <div className="space-y-1">
@@ -724,7 +724,7 @@ const ReservationDetailPage = () => {
                     Reschedule
                   </p>
                   <p>
-                    Sudah diubah{' '}
+                    Sudah diubah{" "}
                     <span className="font-semibold">
                       {reservation.rescheduleCount}x
                     </span>
@@ -763,7 +763,7 @@ const ReservationDetailPage = () => {
                     {formatDateTime(reservation.session?.timeSlot?.startTime)}
                   </p>
                   <p className="mt-1 text-[11px] text-slate-500">
-                    Berakhir pada{' '}
+                    Berakhir pada{" "}
                     {formatDateTime(reservation.session?.timeSlot?.endTime)}
                   </p>
                 </div>
@@ -772,7 +772,7 @@ const ReservationDetailPage = () => {
                     Durasi layanan
                   </p>
                   <p className="mt-1 text-sm font-medium">
-                    {reservation.service?.duration || '-'} menit
+                    {reservation.service?.duration || "-"} menit
                   </p>
                   <p className="mt-1 text-[11px] text-slate-500">
                     Estimasi bisa sedikit berbeda tergantung kondisi bayi.
@@ -782,7 +782,7 @@ const ReservationDetailPage = () => {
             </motion.div>
 
             {/* ULASAN */}
-            {reservation.status === 'COMPLETED' && (
+            {reservation.status === "COMPLETED" && (
               <motion.div
                 className="rounded-3xl bg-white/95 p-6 shadow-xl shadow-amber-50/80 ring-1 ring-amber-100"
                 initial={{ opacity: 0, y: 10 }}
@@ -801,8 +801,8 @@ const ReservationDetailPage = () => {
                           size={22}
                           className={
                             reservation.rating!.rating >= star
-                              ? 'text-amber-500 fill-amber-500'
-                              : 'text-slate-200'
+                              ? "text-amber-500 fill-amber-500"
+                              : "text-slate-200"
                           }
                         />
                       ))}
@@ -811,7 +811,7 @@ const ReservationDetailPage = () => {
                       </span>
                     </div>
                     <p className="text-xs italic text-slate-600">
-                      “{reservation.rating.comment || 'Tidak ada komentar.'}”
+                      “{reservation.rating.comment || "Tidak ada komentar."}”
                     </p>
                   </div>
                 ) : (
@@ -862,25 +862,25 @@ const ReservationDetailPage = () => {
                     </span>
                     <span
                       className={`text-xs font-semibold ${
-                        currentPaymentStatus?.color || ''
+                        currentPaymentStatus?.color || ""
                       }`}
                     >
-                      {currentPaymentStatus?.text || 'N/A'}
+                      {currentPaymentStatus?.text || "N/A"}
                     </span>
                   </div>
 
                   <div className="space-y-2">
                     <p>
-                      <span className="font-medium">Metode:</span>{' '}
+                      <span className="font-medium">Metode:</span>{" "}
                       {paymentDetails.payment.paymentMethod}
                     </p>
                     <p>
-                      <span className="font-medium">Batas waktu bayar:</span>{' '}
+                      <span className="font-medium">Batas waktu bayar:</span>{" "}
                       {formatDateTime(paymentDetails.payment.expiryDate)}
                     </p>
                   </div>
 
-                  {paymentDetails.payment.status === 'PENDING' &&
+                  {paymentDetails.payment.status === "PENDING" &&
                     paymentDetails.payment.paymentUrl && (
                       <div className="pt-2">
                         <a

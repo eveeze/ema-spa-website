@@ -189,7 +189,7 @@ const CustomerReservations = () => {
 
   const {
     data: reservations,
-    isLoading,
+    isLoading, // KEMBALI KE LOGIKA STANDAR (Hapus fetchStatus)
     isError,
     error,
   } = useCustomerReservations(filter);
@@ -277,7 +277,7 @@ const CustomerReservations = () => {
               <p>Gagal memuat data reservasi. Coba lagi beberapa saat lagi.</p>
               {error && (
                 <p className="mt-1 text-[11px] text-rose-500">
-                  {error.message}
+                  {(error as Error)?.message || "Terjadi kesalahan"}
                 </p>
               )}
             </div>
