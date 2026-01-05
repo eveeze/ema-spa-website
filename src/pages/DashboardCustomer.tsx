@@ -1,8 +1,10 @@
+// src/pages/CustomerDashboard.tsx
 import { Link } from "react-router-dom";
 import { CalendarPlus, Loader2, AlertTriangle, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "../hooks/useAuth";
 import { useCustomerReservations } from "../hooks/useCustomerHooks";
+import { useMemo } from "react"; // Tambahkan useMemo
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 10 },
@@ -20,26 +22,37 @@ const fadeInUp = {
 const CustomerDashboard = () => {
   const { user } = useAuth();
 
-  // Ambil data tanpa logika aneh-aneh
+  // upcoming only
   const {
     data: upcomingReservations,
     isLoading: isLoadingUpcoming,
     isError: isErrorUpcoming,
   } = useCustomerReservations("upcoming");
 
+  // all reservations
   const {
     data: allReservations,
     isLoading: isLoadingAll,
     isError: isErrorAll,
   } = useCustomerReservations();
 
-  // Logika standar seperti di Profile Page
   const isLoading = isLoadingUpcoming || isLoadingAll;
   const isError = isErrorUpcoming || isErrorAll;
 
+  // ✅ LOGIKA BARU: Sorting agar yang muncul benar-benar "Reservasi Berikutnya" (Terdekat)
+  const nextReservation = useMemo(() => {
+    if (!upcomingReservations || upcomingReservations.length === 0) return null;
+
+    // Copy array dulu biar aman (.slice()), lalu sort ascending berdasarkan waktu
+    return upcomingReservations.slice().sort((a, b) => {
+      const dateA = new Date(a.session?.timeSlot?.startTime || 0).getTime();
+      const dateB = new Date(b.session?.timeSlot?.startTime || 0).getTime();
+      return dateA - dateB;
+    })[0]; // Ambil yang paling awal
+  }, [upcomingReservations]);
+
   const upcomingReservationsCount = upcomingReservations?.length ?? 0;
   const totalReservationsCount = allReservations?.length ?? 0;
-  const nextReservation = upcomingReservations?.[0];
 
   const displayName = user?.name?.split(" ")[0] ?? user?.name ?? "Bunda";
 

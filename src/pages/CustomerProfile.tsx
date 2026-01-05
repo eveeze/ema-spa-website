@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import {
   useCustomerProfile,
   useUpdateCustomerProfile,
-} from '../hooks/useCustomerHooks';
-import { Loader2, AlertTriangle, User as UserIcon } from 'lucide-react';
-import { motion } from 'framer-motion';
+} from "../hooks/useCustomerHooks";
+import { Loader2, AlertTriangle, User as UserIcon } from "lucide-react";
+import { motion } from "framer-motion";
 
 // Tipe data HANYA untuk field yang ada di form.
 type ProfileFormData = {
@@ -39,7 +39,7 @@ const CustomerProfile = () => {
 
   const onSubmit = (data: ProfileFormData) => {
     if (!profile?.id) {
-      console.error('Cannot update profile without a valid customer ID.');
+      console.error("Cannot update profile without a valid customer ID.");
       return;
     }
 
@@ -98,7 +98,7 @@ const CustomerProfile = () => {
         className="max-w-3xl rounded-3xl bg-white/95 shadow-xl ring-1 ring-slate-100"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: 'easeOut' }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
       >
         {/* Header dalam card */}
         <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 md:px-7">
@@ -159,7 +159,7 @@ const CustomerProfile = () => {
               Nama Lengkap
             </label>
             <input
-              {...register('name', { required: 'Nama tidak boleh kosong' })}
+              {...register("name", { required: "Nama tidak boleh kosong" })}
               type="text"
               id="name"
               placeholder="Masukkan nama lengkap Anda"
@@ -179,8 +179,8 @@ const CustomerProfile = () => {
               Nomor Telepon / WhatsApp
             </label>
             <input
-              {...register('phoneNumber', {
-                required: 'Nomor telepon tidak boleh kosong',
+              {...register("phoneNumber", {
+                required: "Nomor telepon tidak boleh kosong",
               })}
               type="tel"
               id="phoneNumber"
@@ -193,8 +193,7 @@ const CustomerProfile = () => {
               </p>
             )}
             <p className="text-[11px] text-slate-400">
-              Pastikan nomor aktif dan terhubung ke WhatsApp untuk pengingat
-              jadwal dan konfirmasi reservasi.
+              Pastikan nomor aktif dan terhubung ke WhatsApp.
             </p>
           </div>
 
@@ -211,7 +210,7 @@ const CustomerProfile = () => {
                   !isUpdating
                     ? {
                         y: -1,
-                        boxShadow: '0 16px 30px rgba(56,189,248,0.28)',
+                        boxShadow: "0 16px 30px rgba(56,189,248,0.28)",
                       }
                     : {}
                 }
