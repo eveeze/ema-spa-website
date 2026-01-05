@@ -89,46 +89,47 @@ const PaymentStatusPage = () => {
     return () => clearTimeout(timer);
   }, [reservationId]);
 
-  // --- PERBAIKAN FORMAT TANGGAL & WAKTU (UTC ke WIB) ---
+  // --- PERBAIKAN FORMAT TANGGAL & WAKTU ---
 
   const formatDate = (iso: string) => {
-    // Konversi tanggal ISO ke format Indonesia (WIB)
-    return new Date(iso).toLocaleDateString("id-ID", {
+    const date = new Date(iso);
+    // PERBAIKAN: Set jam ke 12:00 Siang UTC.
+    // Ini mencegah tanggal bergeser ke hari berikutnya/sebelumnya saat dikonversi ke WIB (+7).
+    date.setUTCHours(12, 0, 0, 0);
+
+    return date.toLocaleDateString("id-ID", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric",
-      timeZone: "Asia/Jakarta", // Penting: Paksa zona waktu WIB
+      timeZone: "Asia/Jakarta",
     });
   };
 
   const formatTimeStr = (timeStr: string) => {
-    // Fungsi helper internal untuk konversi satu segmen waktu (HH:mm) UTC ke WIB
     const convertToWIB = (timePart: string) => {
       try {
-        // Hapus detik jika ada (ambil HH:mm saja), dan ganti titik dengan titik dua
         const cleanPart = timePart.replace(".", ":").substring(0, 5);
         const [hours, minutes] = cleanPart.split(":");
 
-        // Buat objek Date dummy dengan waktu UTC tersebut
+        // Anggap input dari backend adalah UTC
         const date = new Date();
         date.setUTCHours(parseInt(hours || "0"), parseInt(minutes || "0"), 0);
 
-        // Keluarkan sebagai string waktu WIB (UTC+7)
+        // Konversi ke WIB (+7 jam)
         return date
           .toLocaleTimeString("id-ID", {
             hour: "2-digit",
             minute: "2-digit",
-            timeZone: "Asia/Jakarta", // Otomatis tambah +7 jam
+            timeZone: "Asia/Jakarta",
             hour12: false,
           })
-          .replace(/\./g, ":"); // Format pemisah standar ":"
+          .replace(/\./g, ":");
       } catch (e) {
-        return timePart; // Fallback jika format error
+        return timePart;
       }
     };
 
-    // Jika formatnya range (contoh: "01:00 - 02:00")
     if (timeStr.includes("-")) {
       const parts = timeStr.split("-");
       const start = convertToWIB(parts[0].trim());
@@ -136,7 +137,6 @@ const PaymentStatusPage = () => {
       return `${start} - ${end} WIB`;
     }
 
-    // Jika formatnya single (contoh: "01:00:00")
     return `${convertToWIB(timeStr)} WIB`;
   };
 
@@ -268,7 +268,6 @@ const PaymentStatusPage = () => {
               </p>
               <p className="mb-1">
                 <span className="font-medium text-slate-700">Waktu:</span>{" "}
-                {/* Menggunakan fungsi formatTimeStr yang sudah diperbarui */}
                 {formatTimeStr(reservation.sessionTime)}
               </p>
               <p className="mt-2 text-sm font-semibold text-slate-900">
