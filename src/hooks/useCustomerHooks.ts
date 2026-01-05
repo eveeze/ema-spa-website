@@ -1,14 +1,12 @@
 // src/hooks/useCustomerHooks.ts
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as customerApi from "../api/customerApi";
-import { useAuth } from "./useAuth"; // ✅ Pastikan import ini ada
 import {
   ReservationPayload,
   UpdateProfilePayload,
   AvailableTimeSlotResponse,
   OnlineRatingPayload,
-  ReschedulePayload,
+  ReschedulePayload, // BARU: Import tipe ini
 } from "../types";
 
 // Kunci query untuk manajemen cache yang konsisten
@@ -31,14 +29,9 @@ export const useCustomerReservations = (
   status?: "upcoming" | "past" | string,
   limit?: number
 ) => {
-  // ✅ Mengambil token untuk mencegah request sebelum token siap
-  const { token } = useAuth();
-
   return useQuery({
     queryKey: [QUERY_KEYS.RESERVATIONS, status, limit],
     queryFn: () => customerApi.getMyReservations(status, limit),
-    // ✅ PERBAIKAN: Fetch jika token ada
-    enabled: !!token,
     select: (response) => response.data,
   });
 };
@@ -48,12 +41,10 @@ export const useCustomerReservations = (
  * @param reservationId - ID reservasi.
  */
 export const useCustomerReservationById = (reservationId: string | null) => {
-  const { token } = useAuth(); // ✅ Ambil token
   return useQuery({
     queryKey: [QUERY_KEYS.RESERVATION_DETAIL, reservationId],
     queryFn: () => customerApi.getReservationById(reservationId!),
-    // ✅ PERBAIKAN: Fetch jika ID ada DAN token ada
-    enabled: !!reservationId && !!token,
+    enabled: !!reservationId,
     select: (response) => response.data,
   });
 };
@@ -62,12 +53,9 @@ export const useCustomerReservationById = (reservationId: string | null) => {
  * Hook untuk mengambil profil pelanggan yang sedang login.
  */
 export const useCustomerProfile = () => {
-  const { token } = useAuth(); // ✅ Ambil token
   return useQuery({
     queryKey: [QUERY_KEYS.PROFILE],
     queryFn: customerApi.getMyProfile,
-    // ✅ PERBAIKAN: Fetch profil hanya jika token ada
-    enabled: !!token,
   });
 };
 
@@ -106,8 +94,6 @@ export const useCreateReservation = () => {
  * Hook untuk mengambil metode pembayaran yang tersedia.
  */
 export const useAvailablePaymentMethods = () => {
-  // Metode pembayaran biasanya public atau tidak butuh token spesifik user (opsional)
-  // Tapi jika butuh token, tambahkan enabled: !!token
   return useQuery({
     queryKey: [QUERY_KEYS.PAYMENT_METHODS],
     queryFn: customerApi.getAvailablePaymentMethods,
@@ -121,12 +107,10 @@ export const useAvailablePaymentMethods = () => {
  * @param reservationId - ID Reservasi.
  */
 export const usePaymentDetails = (reservationId: string | null) => {
-  const { token } = useAuth(); // ✅ Ambil token
   return useQuery({
     queryKey: [QUERY_KEYS.PAYMENT_DETAILS, reservationId],
     queryFn: () => customerApi.getPaymentDetails(reservationId!),
-    // ✅ PERBAIKAN: Fetch jika ID ada DAN token ada
-    enabled: !!reservationId && !!token,
+    enabled: !!reservationId,
     select: (response) => response.data,
   });
 };
@@ -136,7 +120,6 @@ export const usePaymentDetails = (reservationId: string | null) => {
  * @param dateString - Tanggal yang dipilih (format YYYY-MM-DD).
  */
 export const useAvailableSchedule = (dateString: string | null) => {
-  // Jadwal biasanya public, tapi jika butuh token, tambahkan di sini
   return useQuery<AvailableTimeSlotResponse[]>({
     queryKey: [QUERY_KEYS.AVAILABLE_SCHEDULE, dateString],
     queryFn: async () => {
@@ -172,7 +155,7 @@ export const useCreateOnlineRating = () => {
 };
 
 /**
- * Hook (Mutation) untuk melakukan reschedule reservasi.
+ * BARU: Hook (Mutation) untuk melakukan reschedule reservasi.
  */
 export const useRescheduleReservation = () => {
   const queryClient = useQueryClient();

@@ -1,34 +1,24 @@
 // src/App.tsx
-import { Outlet, useLocation } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
-
+import { Outlet } from "react-router-dom";
+// Hapus import AnimatePresence dan motion jika tidak dipakai komponen lain
 import Navbar from "./layout/Navbar";
 import OneSignalManager from "./components/OneSignalManager";
 
 function App() {
-  const location = useLocation();
+  // Hapus useLocation karena tidak lagi dipakai untuk key animasi global
 
   return (
     <>
       <OneSignalManager />
+      {/* Jika Navbar ini untuk landing page, sebaiknya dipisah layoutnya. 
+          Tapi jika struktur Anda begini, biarkan saja. */}
       <Navbar />
 
-      {/* Transition antar halaman */}
-      <AnimatePresence mode="wait">
-        <motion.main
-          key={location.pathname}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{
-            duration: 0.35,
-            ease: "easeOut",
-          }}
-          className="min-h-screen"
-        >
-          <Outlet />
-        </motion.main>
-      </AnimatePresence>
+      {/* ✅ PERBAIKAN: Hapus AnimatePresence & motion.main di sini. 
+          Biarkan Outlet merender DashboardLayout tanpa di-unmount paksa. */}
+      <main className="min-h-screen">
+        <Outlet />
+      </main>
     </>
   );
 }

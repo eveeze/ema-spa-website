@@ -1,7 +1,13 @@
 import React, { useMemo } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom"; // Tambah useLocation
 import { LayoutDashboard, CalendarCheck, User, LogOut } from "lucide-react";
-import { LazyMotion, domAnimation, m, useReducedMotion } from "framer-motion";
+import {
+  LazyMotion,
+  domAnimation,
+  m,
+  AnimatePresence,
+  useReducedMotion,
+} from "framer-motion"; // Tambah AnimatePresence
 import { useAuth } from "../hooks/useAuth";
 
 type NavItem = {
@@ -22,6 +28,7 @@ const navItems: NavItem[] = [
 
 const DashboardLayout: React.FC = () => {
   const { user, logout } = useAuth();
+  const location = useLocation(); // ✅ Ambil lokasi untuk key animasi konten
   const reduceMotion = useReducedMotion();
 
   const displayName = useMemo(() => {
@@ -34,9 +41,8 @@ const DashboardLayout: React.FC = () => {
   return (
     <LazyMotion features={domAnimation}>
       <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-sky-50">
-        {/* Wrapper */}
         <div className="mx-auto flex max-w-7xl gap-0 px-4 pt-4 sm:px-6 lg:px-8 lg:pt-8">
-          {/* ===== Desktop Sidebar (lg+) ===== */}
+          {/* ===== SIDEBAR (Tidak akan ikut animasi reload) ===== */}
           <m.aside
             className="relative hidden w-64 flex-shrink-0 flex-col rounded-3xl bg-white/90 p-5 shadow-md ring-1 ring-sky-100/80 lg:flex"
             initial={reduceMotion ? undefined : { opacity: 0, x: -12 }}
@@ -50,10 +56,10 @@ const DashboardLayout: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-sm font-semibold text-slate-900">
-                    Ema Mom Kids Baby Spa
+                    Ema Baby Spa
                   </h2>
                   <p className="text-[11px] text-slate-500">
-                    Relax, Healthy and Happy
+                    Relax, Healthy & Happy
                   </p>
                 </div>
               </div>
@@ -63,7 +69,7 @@ const DashboardLayout: React.FC = () => {
                   Halo, {displayName}
                 </p>
                 <p className="text-[11px] text-slate-500">
-                  Kelola reservasi dan profil Anda.
+                  Kelola reservasi Anda.
                 </p>
               </div>
             </div>
@@ -115,9 +121,9 @@ const DashboardLayout: React.FC = () => {
             </button>
           </m.aside>
 
-          {/* ===== Main Content ===== */}
+          {/* ===== MAIN CONTENT ===== */}
           <div className="flex-1 lg:pl-6">
-            {/* Mobile Top Header (NO hamburger) */}
+            {/* Mobile Header */}
             <m.header
               className="mb-4 flex items-center justify-between rounded-2xl bg-white/90 px-4 py-3 shadow-sm ring-1 ring-sky-100/80 lg:hidden"
               initial={reduceMotion ? undefined : { opacity: 0, y: -8 }}
@@ -142,16 +148,24 @@ const DashboardLayout: React.FC = () => {
               </button>
             </m.header>
 
-            {/* Content area:
-                - pb-24 di mobile supaya konten tidak ketutup bottom nav
-                - di desktop normal */}
+            {/* ✅ ANIMASI PINDAH KE SINI: Hanya konten yang berubah */}
             <main className="rounded-3xl bg-transparent pb-24 lg:pb-0">
-              <Outlet />
+              <AnimatePresence mode="wait">
+                <m.div
+                  key={location.pathname} // Kunci animasi berdasarkan URL
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }} // Durasi lebih cepat agar responsif
+                >
+                  <Outlet />
+                </m.div>
+              </AnimatePresence>
             </main>
           </div>
         </div>
 
-        {/* ===== Mobile Bottom Nav (primary navigation) ===== */}
+        {/* ===== Mobile Bottom Nav ===== */}
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-sky-100/80 bg-white/85 backdrop-blur-md lg:hidden">
           <div className="mx-auto flex max-w-7xl items-center justify-around px-4 py-2">
             {navItems.map((item) => {
@@ -183,7 +197,6 @@ const DashboardLayout: React.FC = () => {
                           }
                         />
                       )}
-
                       <div
                         className={[
                           "relative z-10 flex h-9 w-9 items-center justify-center rounded-2xl border transition-all",
@@ -194,7 +207,6 @@ const DashboardLayout: React.FC = () => {
                       >
                         <Icon className="h-[18px] w-[18px]" />
                       </div>
-
                       <span className="relative z-10 text-[11px] font-semibold leading-none">
                         {item.name.split(" ")[0]}
                       </span>
